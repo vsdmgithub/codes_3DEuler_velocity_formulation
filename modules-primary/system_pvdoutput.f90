@@ -148,7 +148,7 @@ MODULE system_pvdoutput
 
     CALL  VTR_write_var(FD=fd,NAME="Vorticity",VX=w_ux,VY=w_uy,VZ=w_uz )
 
-    CALL  VTR_write_var(FD=fd,NAME="Enst_Nzd", FIELD = w_mod_2 / ( vx_O_moment( 1 ) ** two ) )
+    CALL  VTR_write_var(FD=fd,NAME="Enst_Nzd", FIELD = w_mod_2 )
 
     CALL  VTR_write_var(FD=fd,NAME="VX_Stretch", FIELD = vx_stretching )
 
@@ -161,7 +161,7 @@ MODULE system_pvdoutput
 
   END
 
-  SUBROUTINE write_PVD_vorticity_subset
+  SUBROUTINE write_PVD_VX_STR_subset
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -185,13 +185,20 @@ MODULE system_pvdoutput
 
     CALL  VTR_write_mesh(FD=fd,X=pvd_ax_x,Y=pvd_ax_y,Z=pvd_ax_z)
 
-    CALL  VTR_write_var(FD=fd,NAME="Vorticity",VX=vec_x,VY=vec_y,VZ=vec_z )
+    CALL  VTR_write_var(FD=fd,NAME="VX",VX=vec_x,VY=vec_y,VZ=vec_z )
 
-    scalr = w_mod_2(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1) / ( vx_O_moment( 1 ) ** two )
-    CALL  VTR_write_var(FD=fd,NAME="Enst_Nzd",FIELD=scalr)
+    vec_x = w_uz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1) + str_xy(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    vec_y = two * str_yy(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    vec_z = w_ux(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1) + str_yz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! COPYING THE SUBSET DATA
+
+    CALL  VTR_write_var(FD=fd,NAME="VX_dot",VX=vec_x,VY=vec_y,VZ=vec_z )
+
+    ! scalr = w_mod_2(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1))
+    ! CALL  VTR_write_var(FD=fd,NAME="Enst_Nzd",FIELD=scalr)
 
     scalr = vx_stretching(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
-    CALL  VTR_write_var(FD=fd,NAME="VX_Stretch", FIELD = scalr )
+    CALL  VTR_write_var(FD=fd,NAME="VX_alpha", FIELD = scalr )
 
     ! scalr = vx_stretching(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1) - bck_vx_stretching(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
     ! CALL  VTR_write_var(FD=fd,NAME="VX_stretch_loc", FIELD = scalr )

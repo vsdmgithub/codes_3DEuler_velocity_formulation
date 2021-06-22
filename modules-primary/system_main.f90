@@ -108,7 +108,7 @@ MODULE system_main
       ! ----------------------------------------------------------------
       !      'ad'- ADVECTION TYPE SOLVER
       !      'vo'- VORTICITY TYPE SOLVER
-              solver_type = 'ad'
+              solver_type = 'vo'
       ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
       !      S  O  L  V  E  R     A  L  G  O  R  I  T  H  M
       ! ----------------------------------------------------------------
@@ -129,11 +129,7 @@ MODULE system_main
         ! Create names, folders to save files, open files in them to write data.
         ! REF-> <<< system_basicoutput >>>
 
-        ! CALL allocate_vorticity_moments
-        ! Allocates arrays for the moments of Vorticity
-        ! REF-> <<< system_advvariables >>>
-
-        ! CALL allocate_strain_tensor
+        CALL allocate_strain_tensor
         ! Allocates arrays for the strain tensor
         ! REF-> <<< system_advvariables >>>
 
@@ -141,7 +137,7 @@ MODULE system_main
         ! Allocates arrays for the background strain tensor calculation
         ! REF-> <<< system_advvariables >>>
 
-        ! CALL allocate_PVD_subset_arrays
+        CALL allocate_PVD_subset_arrays
         ! Allocates arrays for PVD output for subset of data
         ! REF-> <<< system_pvdoutput >>>
 
@@ -172,9 +168,6 @@ MODULE system_main
     !             T   I   M   E       L  O  O  P
     ! _________________________________________________________________
     DO t_step = 0, t_step_total
-
-      CALL inter_analysis
-      ! Does all analysis in between time steps. Including saving data
 
       IF (debug_error .EQ. 1) THEN
         EXIT
@@ -217,6 +210,9 @@ MODULE system_main
     10101 CONTINUE
     ! Jumps straight out of loop to here.
 
+    CALL inter_analysis
+    ! Does all analysis in between time steps. Including saving data
+
     END DO
     ! _________________________________________________________________
 
@@ -258,16 +254,10 @@ MODULE system_main
       CALL write_temporal_data
       ! REF-> <<< system_basicoutput >>>
 
-      ! CALL compute_vorticity_moments
+      CALL compute_strain_tensor
       ! REF-> <<< system_advfunctions >>>
 
-      ! CALL compute_strain_tensor
-      ! REF-> <<< system_advfunctions >>>
-
-      ! CALL compute_vortex_stretching
-      ! REF-> <<< system_advfunctions >>>
-
-      ! CALL compute_vorticity_dot_moments
+      CALL compute_vortex_stretching
       ! REF-> <<< system_advfunctions >>>
 
       ! CALL compute_bck_strain_tensor
@@ -276,23 +266,26 @@ MODULE system_main
       ! CALL compute_bck_vortex_stretching
       ! REF-> <<< system_advfunctions >>>
 
-      ! CALL compute_vorticity_dot_loc_moments
-      ! REF-> <<< system_advfunctions >>>
+      CALL write_vx_dot_section
+      ! REF-> <<< system_advoutput >>>
 
-      ! CALL write_vorticity_section
+      CALL write_vx_section
+      ! REF-> <<< system_advoutput >>>
+
+      CALL write_vx_stretching_section
       ! REF-> <<< system_advoutput >>>
 
     END IF
 
     IF (MOD(t_step,t_step_PVD_save) .EQ. 0) THEN
 
-      CALL write_PVD_velocity
+      ! CALL write_PVD_velocity
       ! REF-> <<< system_pvdoutput >>>
 
       ! CALL write_PVD_vorticity
       ! REF-> <<< system_pvdoutput >>>
 
-      ! CALL write_PVD_vorticity_subset
+      CALL write_PVD_VX_STR_subset
       ! REF-> <<< system_pvdoutput >>>
 
     END IF
@@ -320,25 +313,22 @@ MODULE system_main
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT NONE
 
-    CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
+    ! CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
     ! Making sure, 'v' and 'u' are upto same evolution step
 
-    CALL write_spectral_velocity
+    ! CALL write_spectral_velocity
     ! REF-> <<< system_basicoutput >>>
 
-    CALL write_velocity
+    ! CALL write_velocity
     ! REF-> <<< system_basicoutput >>>
 
-    ! CALL deallocate_vorticity_moments
-    ! REF-> <<< system_advvariables >>>
-
-    ! CALL deallocate_strain_tensor
+    CALL deallocate_strain_tensor
     ! REF-> <<< system_advvariables >>>
 
     ! CALL deallocate_bck_strain_tensor
     ! REF-> <<< system_advvariables >>>
 
-    ! CALL deallocate_PVD_subset_arrays
+    CALL deallocate_PVD_subset_arrays
     ! REF-> <<< system_pvdoutput >>>
 
     CALL deallocate_solver

@@ -54,7 +54,7 @@ MODULE system_initialcondition
     IMPLICIT  NONE
     ! Initializing the initial velocity (spectral) and projecting it so that the flow is incompressible.
 
-    CALL IC_exp_decaying_spectrum(energy_initial)
+    ! CALL IC_exp_decaying_spectrum(energy_initial)
     ! Generic randomized initial condition, with energy mainly in integral scale (spectrally)
 
     ! CALL IC_Kolmogorov_spectrum(energy_initial)
@@ -72,7 +72,7 @@ MODULE system_initialcondition
     ! CALL IC_ABC(energy_initial)
     ! Arnold-Beltrami-Childress Initial condition
 
-    ! CALL IC_vortex_sheet(energy_initial)
+    CALL IC_vortex_sheet(energy_initial)
     ! Creates a vortex sheets at z = +pi/2, -pi/2, pointing along y direction.
     ! With a background field from IC_exp_decaying_spectrum
 
@@ -699,9 +699,9 @@ MODULE system_initialcondition
     ! Normalizing parameter
 
     smooth_pm    = 0.5D0
-    ! How thick the sheet is, smaller the parameter thicker it is
+    ! How thick the sheet is, smaller the parameter widely spread it is
 
-    energy_ratio = 0.02D0
+    energy_ratio = 0.01D0
     ! Percentage of energy in Background field
 
     DO i_x = 0, N - 1

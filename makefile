@@ -84,7 +84,7 @@ ex:$(ob)
 	$(cc) -c $(main_mod)
 	$(cc) $(lb_lc) $(program) $(obj) $(lb_fftw) -o ex
 	$(mkcl)
-	$(run)
+#	$(run)
 
 #----------------------------end-------
 
