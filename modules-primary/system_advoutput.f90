@@ -59,9 +59,9 @@ MODULE system_advoutput
        i_y = Nh - 1
     DO i_x = 0, Nh
     DO i_z = 0, Nh
-         WRITE(456,f_d32p17,ADVANCE='no')  str_xy(i_x, i_y, i_z) + w_uz( i_x, i_y, i_z)
+         WRITE(456,f_d32p17,ADVANCE='no')  str_xy(i_x, i_y, i_z) + hf * w_uz( i_x, i_y, i_z)
          WRITE(456,f_d32p17,ADVANCE='no')  two * str_yy(i_x, i_y, i_z)
-         WRITE(456,f_d32p17,ADVANCE='yes') str_yz(i_x, i_y, i_z) + w_ux(i_x, i_y, i_z)
+         WRITE(456,f_d32p17,ADVANCE='yes') str_yz(i_x, i_y, i_z) + hf * w_ux(i_x, i_y, i_z)
     END DO
     END DO
 
