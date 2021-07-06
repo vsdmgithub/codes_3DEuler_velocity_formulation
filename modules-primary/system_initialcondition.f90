@@ -59,7 +59,7 @@ MODULE system_initialcondition
 
     ! Initializing the initial velocity (spectral) and projecting it so that the flow is incompressible.
 
-    CALL IC_exp_decaying_spectrum(energy_initial)
+    ! CALL IC_exp_decaying_spectrum(energy_initial)
     ! Generic randomized initial condition, with energy mainly in integral scale (spectrally)
 
     ! CALL IC_Kolmogorov_spectrum(energy_initial)
@@ -68,7 +68,7 @@ MODULE system_initialcondition
     ! CALL IC_perfect_thermalized_spectrum(energy_initial)
     ! Create its own thermalized spectrum by equiparition, (no permanence of large eddies in this case)
 
-    ! CALL IC_vortex_sheet(energy_initial)
+    CALL IC_vortex_sheet(energy_initial)
     ! Creates a vortex sheets at z = +pi/2, -pi/2, pointing along y direction.
     ! With a background field from IC_exp_decaying_spectrum
 
@@ -506,7 +506,7 @@ MODULE system_initialcondition
     ! _________________________
     ! LOCAL VARIABLES
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
-    DOUBLE PRECISION::u0,smooth_pm
+    DOUBLE PRECISION::u0,smooth_pm,c_factor
     DOUBLE PRECISION::energy_sheet,energy_ratio
     DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::u_sheet_y
 
@@ -515,22 +515,22 @@ MODULE system_initialcondition
     u0           = one
     ! Normalizing parameter
 
-    smooth_pm    = 0.5D0
-    ! How thick the sheet is, smaller the parameter thicker it is
+    smooth_pm    = 0.25D0
+    ! How thick the sheet is, smaller the parameter thicker it is, has to be less than 1
+
+    c_factor = smooth_pm * two_pi / thr
+    ! TO KEEP UP THE NOMENCLATURE FOR THIS STUDY.
+    ! With this factor => c_factor * i_x = smooth_pm * k_G * x = k_0 * x
 
     energy_ratio = 0.02D0
     ! Percentage of energy in Background field
 
     DO i_z = 0, N_z - 1
   	DO i_y = 0, N_y - 1
-  	DO i_x = 0, ( N_x / 2 ) - 1
+  	DO i_x = 0, N_x - 1
 
-      u_sheet_y( i_x, i_y, i_z ) = u0 * DTANH( - smooth_pm * hf * DBLE( i_x - ( N_x / 4 ) ) )
-
-    END DO
-    DO i_x = N_x / 2 , N_x - 1
-
-      u_sheet_y( i_x, i_y, i_z ) = u0 * DTANH( smooth_pm * hf * DBLE( i_x - 3 * ( N_x / 4 ) ) )
+      u_sheet_y( i_x, i_y, i_z ) = u0 * (two + DTANH( - c_factor * DBLE( i_x - ( N_x / 4 ) ) ) &
+      + DTANH( c_factor * DBLE( i_x - 3 * ( N_x / 4 ) ) ) )
 
     END DO
     END DO
