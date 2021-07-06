@@ -54,7 +54,7 @@ MODULE system_initialcondition
     IMPLICIT  NONE
     ! Initializing the initial velocity (spectral) and projecting it so that the flow is incompressible.
 
-    CALL IC_exp_decaying_spectrum(energy_initial)
+    ! CALL IC_exp_decaying_spectrum(energy_initial)
     ! Generic randomized initial condition, with energy mainly in integral scale (spectrally)
 
     ! CALL IC_Kolmogorov_spectrum(energy_initial)
@@ -80,7 +80,7 @@ MODULE system_initialcondition
     ! Creates a vortex tube at z = 0, along z direction.
     ! With a background field from IC_exp_decaying_spectrum
 
-    ! CALL IC_from_file_spectral
+    CALL IC_from_file_spectral
     ! Read from file.
     ! *****Check whether file is available already.
 

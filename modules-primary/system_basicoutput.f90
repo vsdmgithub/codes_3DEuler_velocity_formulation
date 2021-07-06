@@ -44,7 +44,6 @@ MODULE system_basicoutput
   CHARACTER(LEN =40) ::sub_dir_3D
   CHARACTER(LEN =40) ::sub_dir_2D
   CHARACTER(LEN =40) ::sub_dir_sp
-  CHARACTER(LEN =40) ::sub_dir_mom
   CHARACTER(LEN =40) ::sub_dir
 
   CONTAINS
@@ -87,14 +86,10 @@ MODULE system_basicoutput
     sub_dir_2D  =   '2D_data/'
     ! Sub directory name to store section files (2D data)
 
-    sub_dir_sp  =   'spectral_data/'
+    sub_dir_sp  =   'k_data/'
     ! Sub directory name to store spectral data
 
-    sub_dir_mom =   'VX_moments/'
-    ! Sub directory name to store vorticity moments
-
-    ! type_sim    =   'CLASSIC_N' // TRIM( ADJUSTL( N_char ) ) // '/'
-    type_sim    =   'VX_MOM_N' // TRIM( ADJUSTL( N_char ) ) // '/'
+    type_sim    =   'N' // TRIM( ADJUSTL( N_char ) ) // '/'
     ! type of simulation, the data is storing
 
     CALL get_simulation_name(name_sim)
@@ -128,8 +123,6 @@ MODULE system_basicoutput
     CALL SYSTEM('mkdir ' // TRIM( ADJUSTL ( file_address ) ) // TRIM( ADJUSTL( sub_dir_sp ) ) )
 
     CALL SYSTEM('mkdir '// TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_3D ) ) )
-
-    CALL SYSTEM('mkdir '// TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_mom ) ) )
 
     CALL SYSTEM('mkdir ' // TRIM( ADJUSTL ( file_address ) ) // TRIM( ADJUSTL( sub_dir_2D ) ) )
 
