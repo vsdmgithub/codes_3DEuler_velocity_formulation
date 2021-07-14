@@ -515,21 +515,21 @@ MODULE system_initialcondition
     u0           = one
     ! Normalizing parameter
 
-    smooth_pm    = 0.25D0
+    smooth_pm    = 0.2D0
     ! How thick the sheet is, smaller the parameter thicker it is, has to be less than 1
 
     c_factor = smooth_pm * two_pi / thr
     ! TO KEEP UP THE NOMENCLATURE FOR THIS STUDY.
     ! With this factor => c_factor * i_x = smooth_pm * k_G * x = k_0 * x
 
-    energy_ratio = 0.02D0
+    energy_ratio = 0.001D0
     ! Percentage of energy in Background field
 
     DO i_z = 0, N_z - 1
   	DO i_y = 0, N_y - 1
   	DO i_x = 0, N_x - 1
 
-      u_sheet_y( i_x, i_y, i_z ) = u0 * (two + DTANH( - c_factor * DBLE( i_x - ( N_x / 4 ) ) ) &
+      u_sheet_y( i_x, i_y, i_z ) = u0 * ( two + DTANH( - c_factor * DBLE( i_x - ( N_x / 4 ) ) ) &
       + DTANH( c_factor * DBLE( i_x - 3 * ( N_x / 4 ) ) ) )
 
     END DO
@@ -588,7 +588,7 @@ MODULE system_initialcondition
     u0           = one
     ! Normalizing parameter
 
-    smooth_pm    = 0.5D0
+    smooth_pm    = 0.2D0
     ! How thick the sheet is, smaller the parameter thicker it is
 
     energy_ratio = 0.02D0

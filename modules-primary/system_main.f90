@@ -134,6 +134,12 @@ MODULE system_main
         ! Allocates arrays for PVD output for subset of data
         ! REF-> <<< system_pvdoutput >>>
 
+        CALL allocate_strain_tensor
+        ! REF-> <<< system_advvariables >>>
+
+        CALL allocate_tr_wave_filter
+        ! REF-> <<< system_advvariables >>>
+
       END IF
 
     END IF
@@ -229,6 +235,9 @@ MODULE system_main
     ! Converts the 't_step' to actual time 'time_now'
     ! REF-> <<< system_auxilaries >>>
 
+    ! CALL write_test_data
+    ! REF-> <<< system_basicoutput >>>
+
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  A  N  A  L  Y  S  I  S       C   A   L   C  .
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -236,8 +245,17 @@ MODULE system_main
     CALL compute_spectral_data
     ! REF-> <<< system_basicfunctions >>>
 
-    CALL write_test_data
-    ! REF-> <<< system_basicoutput >>>
+    CALL compute_strain_tensor
+    ! REF-> <<< system_advfunctions >>>
+
+    CALL write_vx_dot_section
+    ! REF-> <<< system_advoutput >>>
+
+    CALL write_vx_section
+    ! REF-> <<< system_advoutput >>>
+
+    CALL compute_energy_filter
+    ! REF-> <<< system_advfunctions >>>
 
     IF (MOD(t_step,t_step_save) .EQ. 0) THEN
 
@@ -246,6 +264,7 @@ MODULE system_main
 
       CALL write_temporal_data
       ! REF-> <<< system_basicoutput >>>
+
 
     END IF
 
@@ -296,6 +315,12 @@ MODULE system_main
 
     ! CALL write_velocity
     ! REF-> <<< system_basicoutput >>>
+
+    CALL deallocate_strain_tensor
+    ! REF-> <<< system_advvariables >>>
+
+    CALL deallocate_tr_wave_filter
+    ! REF-> <<< system_advvariables >>>
 
     CALL deallocate_PVD_subset_arrays
     ! REF-> <<< system_pvdoutput >>>

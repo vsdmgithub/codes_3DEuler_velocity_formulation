@@ -98,9 +98,11 @@ MODULE system_basicfunctions
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ! Gets the energy in that particular mode (i_x,i_y,i_z) into 'en_temp'
     ! Keeps adding energy to that particular shell (|k| fixed), from all solid angles
+
     DO i_x =    1 , kTru_x
     DO i_y = - kTru_y, kTru_y
     DO i_z = - kTru_z, kTru_z
+
     IF ( k_2 ( i_x, i_y, i_z ) .LT. k_G_2 ) THEN
       energy_mode                                   = CDABS( v_x( i_x, i_y, i_z ) ) ** two + &
                                                       CDABS( v_y( i_x, i_y, i_z ) ) ** two + &
@@ -108,6 +110,7 @@ MODULE system_basicfunctions
       spectral_energy( shell_no ( i_x, i_y, i_z ) ) = spectral_energy( shell_no ( i_x, i_y, i_z ) ) + energy_mode
       enstrophy                                     = enstrophy + k_2( i_x, i_y, i_z) * energy_mode
     END IF
+
     END DO
     END DO
     END DO
@@ -124,8 +127,9 @@ MODULE system_basicfunctions
     END IF
     END DO
     END DO
+
     i_z    = 0
-    DO i_y = 0, kTru_y
+    DO i_y = 1, kTru_y
     IF ( k_2 ( i_x, i_y, i_z ) .LT. k_G_2 ) THEN
       energy_mode                                   = CDABS( v_x( i_x, i_y, i_z ) ) ** two + &
                                                       CDABS( v_y( i_x, i_y, i_z ) ) ** two + &
@@ -134,6 +138,13 @@ MODULE system_basicfunctions
       enstrophy                                     = enstrophy + k_2( i_x, i_y, i_z) * energy_mode
     END IF
     END DO
+
+    i_y   = 0
+    energy_mode                                   = hf * ( CDABS( v_x( i_x, i_y, i_z ) ) ** two + &
+                                                    CDABS( v_y( i_x, i_y, i_z ) ) ** two + &
+                                                    CDABS( v_z( i_x, i_y, i_z ) ) ** two )
+    spectral_energy( shell_no ( i_x, i_y, i_z ) ) = spectral_energy( shell_no ( i_x, i_y, i_z ) ) + energy_mode
+    enstrophy                                     = enstrophy + k_2( i_x, i_y, i_z) * energy_mode
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  S  H  E  L  L      A  V  E  R  A  G  I  N  G

@@ -196,12 +196,14 @@ MODULE system_advoutput
     END IF
 
     WRITE(8009,f_d8p4,ADVANCE   ='no')  time_now
-    WRITE(8009,f_d32p17,ADVANCE ='no')  energy
+    WRITE(8009,f_d32p17,ADVANCE ='no')  spectral_energy( k_G )
     WRITE(8009,f_d32p17,ADVANCE ='no')  energy_filter
     WRITE(8009,f_d32p17,ADVANCE ='yes') energy_filter_spectral
 
     IF ( t_step .EQ. t_step_total ) THEN
+
       CLOSE(8009)
+
     END IF
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

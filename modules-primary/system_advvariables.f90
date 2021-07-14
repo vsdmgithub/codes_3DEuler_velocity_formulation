@@ -39,6 +39,7 @@ MODULE system_advvariables
   DOUBLE PRECISION :: loc_stretching, vx_stretching_max, loc_vx_stretching_max
   DOUBLE PRECISION :: energy_filter,energy_filter_spectral
   DOUBLE PRECISION :: purg_beta
+  INTEGER(KIND=4)  :: k_P
   ! _________________________
   ! ARRAYS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
@@ -137,21 +138,24 @@ MODULE system_advvariables
     ! LOCAL VARIABLES
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
     DOUBLE PRECISION             ::threshold_angle
-    DOUBLE PRECISION             ::threshold_magn
+    DOUBLE PRECISION             ::threshold_magn,k_mod
     ! DOUBLE PRECISION,DIMENSION(3)::tr_wave_dir
 
     ! tr_wave_dir     = (/ one, zero, zero /)
     ! Unit normal of truncation wave (expected)
 
-    threshold_angle = 5.0D0 * two_pi / 24.0D0
+    threshold_angle = ( two_pi / 360.0D0 ) * 15
     ! 75deg angle
+    ! threshold_angle = 5.0D0 * two_pi / 24.0D0
 
     threshold_angle = DCOS( threshold_angle )
     ! Greater than this, will be taken into the tr_wave_filter
 
-    purg_beta       = 0.8D0
-    threshold_magn  = k_G ** ( purg_beta )
+    purg_beta       = 0.4D0
+    threshold_magn  = k_G - k_G ** ( purg_beta )
+    k_P             = FLOOR( threshold_magn )
     ! Threshold (lower) for wavenumber filter
+    print*,k_P,k_G
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		!  A  L  L  O  C  A  T  I  O  N
@@ -162,18 +166,18 @@ MODULE system_advvariables
   	DO i_y = kMin_y, kMax_y
   	DO i_z = kMin_z, kMax_z
 
-      IF ( ( DSQRT( k_2( i_x, i_y, i_z ) ) .GT. threshold_magn ) .AND. &
-        ( k_x( i_x, i_y, i_z ) / DSQRT( k_2( i_x, i_y, i_z ) ) .GT. threshold_angle ) ) THEN
+      k_mod = DSQRT( k_2( i_x, i_y, i_z ) )
+      IF ( ( k_mod .GT. DBLE( k_P ) ) .AND. ( k_x( i_x, i_y, i_z ) / k_mod  .GT. threshold_angle ) ) THEN
       ! Checking the angle between \k and \k_G less than threshold
 
       tr_wave_filter( i_x, i_y, i_z ) = one * truncator( i_x, i_y, i_z )
-
       END IF
 
     END DO
     END DO
     END DO
 
+    print*,sum(tr_wave_filter),sum(truncator)
   END
 
 	SUBROUTINE deallocate_strain_tensor
@@ -209,6 +213,21 @@ MODULE system_advvariables
     DEALLOCATE( bck_str_xy, bck_str_yz, bck_str_zx)
 		DEALLOCATE( bck_vx_stretching )
 		DEALLOCATE( bck_str_opr )
+
+	END
+
+  SUBROUTINE deallocate_tr_wave_filter
+	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	! ------------
+	! CALL this to deallocate arrays related to truncation wave filter
+	! -------------
+	! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+		IMPLICIT NONE
+		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		!  D  E  A  L  L  O  C  A  T  I  O  N
+		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    DEALLOCATE( tr_wave_filter )
 
 	END
 

@@ -61,7 +61,7 @@ MODULE system_pvdoutput
 
     pvd_N_x = N_x / 2
     pvd_N_y = N_y / 2
-    pvd_N_z = N_z
+    pvd_N_z = N_z / 2
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  A  L  L  O  C  A  T  I  O  N
@@ -164,10 +164,6 @@ MODULE system_pvdoutput
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT NONE
 
-    vec_x = w_ux(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
-    vec_y = w_uy(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
-    vec_z = w_uz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
-    ! COPYING THE SUBSET DATA
 
     file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_3D ) ) &
                 // 'VX_SUB_t'
@@ -179,7 +175,17 @@ MODULE system_pvdoutput
 
     CALL  VTR_write_mesh(FD=fd,X=pvd_ax_x,Y=pvd_ax_y,Z=pvd_ax_z)
 
+    vec_x = w_ux(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    vec_y = w_uy(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    vec_z = w_uz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! COPYING THE SUBSET DATA
     CALL  VTR_write_var(FD=fd,NAME="Vorticity",VX=vec_x,VY=vec_y,VZ=vec_z )
+
+    vec_x = hf * w_uy(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1) + str_zx(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    vec_y = hf * w_ux(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1) + str_yz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    vec_z = str_zz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! COPYING THE SUBSET DATA
+    CALL  VTR_write_var(FD=fd,NAME="Vorticity_dot",VX=vec_x,VY=vec_y,VZ=vec_z )
 
     CALL  VTR_close_file(FD=fd)
 

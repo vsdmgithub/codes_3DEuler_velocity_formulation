@@ -120,7 +120,7 @@ MODULE system_advfunctions
 
   END
 
-  SUBROUTINE compute_filter_energy
+  SUBROUTINE compute_energy_filter
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to compute energy in the truncation wavenumber filter modes
@@ -133,10 +133,12 @@ MODULE system_advfunctions
     ! E N E R G Y     I N     F I L T E R
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    energy_filter = SUM( CDABS( v_x * tr_wave_filter ) ** two + &
-                    CDABS( v_y * tr_wave_filter ) ** two + CDABS( v_z * tr_wave_filter ) ** two )
+    energy_filter = SUM( ( CDABS( v_x ) ** two + CDABS( v_y ) ** two + CDABS( v_z ) ** two ) * tr_wave_filter )
 
-    energy_filter_spectral = SUM( spectral_energy( k_G : ) )
+    energy_filter_spectral = SUM( spectral_energy( k_P : ) )
+
+    CALL write_energy_filter
+    ! REF-> <<< system_advoutput >>>
 
   END
 
