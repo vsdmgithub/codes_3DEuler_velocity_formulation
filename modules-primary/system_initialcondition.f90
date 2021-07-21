@@ -522,7 +522,7 @@ MODULE system_initialcondition
     ! TO KEEP UP THE NOMENCLATURE FOR THIS STUDY.
     ! With this factor => c_factor * i_x = smooth_pm * k_G * x = k_0 * x
 
-    energy_ratio = 0.001D0
+    energy_ratio = 0.01D0
     ! Percentage of energy in Background field
 
     DO i_z = 0, N_z - 1

@@ -38,8 +38,9 @@ MODULE system_advvariables
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
   DOUBLE PRECISION :: loc_stretching, vx_stretching_max, loc_vx_stretching_max
   DOUBLE PRECISION :: energy_filter,energy_filter_spectral
-  DOUBLE PRECISION :: purg_beta
+  DOUBLE PRECISION :: purg_beta, purg_alpha, time_purging
   INTEGER(KIND=4)  :: k_P
+  INTEGER(KIND=4)  :: t_step_purging
   ! _________________________
   ! ARRAYS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
@@ -47,6 +48,8 @@ MODULE system_advvariables
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::str_xy,str_yz,str_zx
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::w_mod_2
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::vx_stretching
+
+  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::purger
 
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::bck_str_xx,bck_str_yy,bck_str_zz
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::bck_str_xy,bck_str_yz,bck_str_zx
@@ -125,7 +128,7 @@ MODULE system_advvariables
 
   END
 
-  SUBROUTINE allocate_tr_wave_filter
+  SUBROUTINE allocate_filter
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to allocate the wavenumber filter to extract the modes
@@ -151,16 +154,25 @@ MODULE system_advvariables
     threshold_angle = DCOS( threshold_angle )
     ! Greater than this, will be taken into the tr_wave_filter
 
-    purg_beta       = 0.4D0
+    purg_beta       = 0.6D0
     threshold_magn  = k_G - k_G ** ( purg_beta )
     k_P             = FLOOR( threshold_magn )
     ! Threshold (lower) for wavenumber filter
-    print*,k_P,k_G
 
+    purg_alpha      = 0.6D0
+    time_purging    = k_G ** ( - purg_alpha )
+    CALL time_to_step_convert( time_purging, t_step_purging, dt )
+    ! REF-> <<< system_auxilaries >>>
+
+print*,k_P,time_purging,t_step_purging
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		!  A  L  L  O  C  A  T  I  O  N
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ALLOCATE( tr_wave_filter( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE( purger (        kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+
+    tr_wave_filter = zero
+    purger         = zero
 
     DO i_x = kMin_x, kMax_x
   	DO i_y = kMin_y, kMax_y
@@ -171,13 +183,18 @@ MODULE system_advvariables
       ! Checking the angle between \k and \k_G less than threshold
 
       tr_wave_filter( i_x, i_y, i_z ) = one * truncator( i_x, i_y, i_z )
+
+      END IF
+
+      IF ( k_mod .LT. k_P ) THEN
+        purger( i_x, i_y, i_z )  = one
+        ! PURGING MATRIX
       END IF
 
     END DO
     END DO
     END DO
 
-    print*,sum(tr_wave_filter),sum(truncator)
   END
 
 	SUBROUTINE deallocate_strain_tensor
@@ -216,7 +233,7 @@ MODULE system_advvariables
 
 	END
 
-  SUBROUTINE deallocate_tr_wave_filter
+  SUBROUTINE deallocate_filter
 	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	! ------------
 	! CALL this to deallocate arrays related to truncation wave filter
@@ -228,6 +245,7 @@ MODULE system_advvariables
 		!  D  E  A  L  L  O  C  A  T  I  O  N
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     DEALLOCATE( tr_wave_filter )
+    DEALLOCATE( purger )
 
 	END
 

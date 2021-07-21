@@ -65,6 +65,7 @@ MODULE system_main
   ! LOCAL VARIABLES
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
   DOUBLE PRECISION:: temp_data
+  INTEGER(KIND=4)::t_step_total_hf
   CONTAINS
 
   SUBROUTINE pre_analysis
@@ -124,23 +125,22 @@ MODULE system_main
       CALL allocate_solver
       ! Allocates arrays for solver
 
-      IF ( run_code .EQ. 'y' ) THEN
+      CALL prepare_output
+      ! Create names, folders to save files, open files in them to write data.
+      ! REF-> <<< system_basicoutput >>>
 
-        CALL prepare_output
-        ! Create names, folders to save files, open files in them to write data.
-        ! REF-> <<< system_basicoutput >>>
+      CALL allocate_PVD_subset_arrays
+      ! Allocates arrays for PVD output for subset of data
+      ! REF-> <<< system_pvdoutput >>>
 
-        CALL allocate_PVD_subset_arrays
-        ! Allocates arrays for PVD output for subset of data
-        ! REF-> <<< system_pvdoutput >>>
+      ! CALL allocate_strain_tensor
+      ! REF-> <<< system_advvariables >>>
 
-        CALL allocate_strain_tensor
-        ! REF-> <<< system_advvariables >>>
+      CALL allocate_filter
+      ! REF-> <<< system_advvariables >>>
 
-        CALL allocate_tr_wave_filter
-        ! REF-> <<< system_advvariables >>>
-
-      END IF
+      ! check_status = 0
+      ! COMMENT THIS IF YOU WANT TO STOP TIME EVOLUTION
 
     END IF
 
@@ -156,7 +156,6 @@ MODULE system_main
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     IMPLICIT NONE
-
     ! ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ
     !      E   U   L   E   R      E   V   O   L   U   T   I   O   N
     ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
@@ -184,27 +183,6 @@ MODULE system_main
         CALL vorticitysolver_RK4_algorithm
         ! REF-> <<< system_vorticitysolver >>>
         GOTO 10101
-
-      END IF
-      IF ( ( solver_type .EQ. 'ad' ) .AND. ( solver_alg .EQ. 'ab') )  THEN
-
-          CALL advectionsolver_AB4_algorithm
-          ! REF-> <<< system_advectionsolver >>>
-          GOTO 10101
-
-      END IF
-      IF ( ( solver_type .EQ. 'ad' ) .AND. ( solver_alg .EQ. 'rk') )  THEN
-
-          CALL advectionsolver_RK4_algorithm
-          ! REF-> <<< system_advectionsolver >>>
-          GOTO 10101
-
-      END IF
-      IF ( ( solver_type .EQ. 'vo' ) .AND. ( solver_alg .EQ. 'ab') )  THEN
-
-          CALL vorticitysolver_AB4_algorithm
-          ! REF-> <<< system_vorticitysolver >>>
-          GOTO 10101
 
       END IF
       ! Updates v_x,v_y,v_z for next time step
@@ -245,26 +223,28 @@ MODULE system_main
     CALL compute_spectral_data
     ! REF-> <<< system_basicfunctions >>>
 
-    CALL compute_strain_tensor
+    CALL write_temporal_data
+    ! REF-> <<< system_basicoutput >>>
+
+    ! CALL compute_strain_tensor
     ! REF-> <<< system_advfunctions >>>
 
-    CALL write_vx_dot_section
+    ! CALL write_vx_dot_section
     ! REF-> <<< system_advoutput >>>
 
-    CALL write_vx_section
+    ! CALL write_vx_section
     ! REF-> <<< system_advoutput >>>
 
     CALL compute_energy_filter
+    ! REF-> <<< system_advfunctions >>>
+
+    CALL execute_purging
     ! REF-> <<< system_advfunctions >>>
 
     IF (MOD(t_step,t_step_save) .EQ. 0) THEN
 
       CALL write_spectral_data
       ! REF-> <<< system_basicoutput >>>
-
-      CALL write_temporal_data
-      ! REF-> <<< system_basicoutput >>>
-
 
     END IF
 
@@ -273,13 +253,13 @@ MODULE system_main
       ! CALL write_PVD_velocity
       ! REF-> <<< system_pvdoutput >>>
 
-      CALL compute_vorticity
-      ! REF-> <<< system_basicfunctions >>>
-
       ! CALL write_PVD_vorticity
       ! REF-> <<< system_pvdoutput >>>
 
-      CALL write_PVD_vorticity_subset
+      ! CALL write_PVD_vorticity_subset
+      ! REF-> <<< system_pvdoutput >>>
+
+      CALL write_PVD_velocity_subset
       ! REF-> <<< system_pvdoutput >>>
 
     END IF
@@ -316,10 +296,10 @@ MODULE system_main
     ! CALL write_velocity
     ! REF-> <<< system_basicoutput >>>
 
-    CALL deallocate_strain_tensor
+    ! CALL deallocate_strain_tensor
     ! REF-> <<< system_advvariables >>>
 
-    CALL deallocate_tr_wave_filter
+    CALL deallocate_filter
     ! REF-> <<< system_advvariables >>>
 
     CALL deallocate_PVD_subset_arrays

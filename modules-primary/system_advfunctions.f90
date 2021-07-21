@@ -130,16 +130,40 @@ MODULE system_advfunctions
     IMPLICIT NONE
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    ! E N E R G Y     I N     F I L T E R
+    !   E N E R G Y     I N     F I L T E R
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     energy_filter = SUM( ( CDABS( v_x ) ** two + CDABS( v_y ) ** two + CDABS( v_z ) ** two ) * tr_wave_filter )
 
-    energy_filter_spectral = SUM( spectral_energy( k_P : ) )
+    energy_filter_spectral = SUM( spectral_energy( k_P + 1 : ) )
 
     CALL write_energy_filter
     ! REF-> <<< system_advoutput >>>
 
   END
+
+  SUBROUTINE execute_purging
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL this to kill all the modes with k>k_P
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+
+    IF ( MOD( t_step, t_step_purging ) .EQ. 0) THEN
+
+      !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      !  P U R G I N G
+      !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      v_x   =   purger * v_x
+      v_y   =   purger * v_y
+      v_z   =   purger * v_z
+
+    END IF
+
+  END
+
+
 
 END MODULE system_advfunctions

@@ -63,6 +63,8 @@ MODULE system_basicfunctions
 
       check_status = 1
 
+      CALL compute_vorticity
+
       CALL compute_spectral_data
       ! Gets the energy,enstrophy from spectral space
 
