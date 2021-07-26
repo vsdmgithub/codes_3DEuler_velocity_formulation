@@ -68,11 +68,11 @@ MODULE system_initialcondition
     ! CALL IC_perfect_thermalized_spectrum(energy_initial)
     ! Create its own thermalized spectrum by equiparition, (no permanence of large eddies in this case)
 
-    CALL IC_vortex_sheet(energy_initial)
+    ! CALL IC_vortex_sheet(energy_initial)
     ! Creates a vortex sheets at z = +pi/2, -pi/2, pointing along y direction.
     ! With a background field from IC_exp_decaying_spectrum
 
-    ! CALL IC_vortex_tube(energy_initial)
+    CALL IC_vortex_tube(energy_initial)
     ! Creates a vortex tube at z = 0, along z direction.
     ! With a background field from IC_exp_decaying_spectrum
 
@@ -579,7 +579,7 @@ MODULE system_initialcondition
     DOUBLE PRECISION::tube_y0,tube_z0
     DOUBLE PRECISION::tube_y,tube_z
     DOUBLE PRECISION::energy_tube,energy_ratio
-    DOUBLE PRECISION::u_ang,radius
+    DOUBLE PRECISION::u_ang,radius,arg
     DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::u_tube_y,u_tube_z
 
     ALLOCATE(u_tube_y( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
@@ -588,10 +588,10 @@ MODULE system_initialcondition
     u0           = one
     ! Normalizing parameter
 
-    smooth_pm    = 0.2D0
+    smooth_pm    = 0.04D0
     ! How thick the sheet is, smaller the parameter thicker it is
 
-    energy_ratio = 0.02D0
+    energy_ratio = 0.01D0s
     ! Percentage of energy in Background field
 
     tube_y0      = DBLE( N_y / 2 )
@@ -601,12 +601,13 @@ MODULE system_initialcondition
     DO i_y = 0, N_y - 1
     DO i_z = 0, N_z - 1
 
-      tube_y  = DBLE( i_y ) - tube_y0
-      tube_z  = DBLE( i_z ) - tube_z0
-      radius  = DSQRT( tube_y ** two + tube_z ** two )
-      u_ang   = u0 * smooth_pm * DEXP( - hf * ( smooth_pm * radius ) ** two )
-      u_tube_y( :, i_y, i_z ) = - u_ang * tube_z
-      u_tube_z( :, i_y, i_z ) = + u_ang * tube_y
+      tube_y                  = DBLE( i_y ) - tube_y0
+      tube_z                  = DBLE( i_z ) - tube_z0
+      radius                  = DSQRT( tube_y ** two + tube_z ** two )
+      arg                     = radius * smooth_pm * two_pi / thr
+      u_ang                   = arg * DEXP( - hf * ( arg ** two ) )
+      u_tube_y( :, i_y, i_z ) = - u_ang * tube_z / radius
+      u_tube_z( :, i_y, i_z ) = + u_ang * tube_y / radius
 
     END DO
     END DO
@@ -632,6 +633,16 @@ MODULE system_initialcondition
 
     CALL compute_projected_velocity
     ! Projects the velocity to remove some compressibility
+
+    CALL compute_energy_spectral_data
+    ! Gets the energy from spectral space
+
+    norm_factor = DSQRT( energy_initial / energy )
+    ! Normalizing the norm_factor, so that we get energy='energy_input'
+
+    v_x = v_x * norm_factor
+    v_y = v_y * norm_factor
+    v_z = v_z * norm_factor
 
     IC_type = 'VOR-TUB'
 
