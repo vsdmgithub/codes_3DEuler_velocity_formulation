@@ -72,7 +72,11 @@ MODULE system_initialcondition
     ! Creates a vortex sheets at z = +pi/2, -pi/2, pointing along y direction.
     ! With a background field from IC_exp_decaying_spectrum
 
-    CALL IC_vortex_tube(energy_initial)
+    CALL IC_vortex_sheet_with_TG(energy_initial)
+    ! Creates a vortex sheets at z = +pi/2, -pi/2, pointing along y direction.
+    ! With a background field from Taylor Green
+
+    ! CALL IC_vortex_tube(energy_initial)
     ! Creates a vortex tube at z = 0, along z direction.
     ! With a background field from IC_exp_decaying_spectrum
 
@@ -558,6 +562,86 @@ MODULE system_initialcondition
 
   END
 
+  SUBROUTINE IC_vortex_sheet_with_TG(energy_input)
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+  ! An initial condition with vortex sheet imposed with a TAYLOR GREEN FLOW as background.
+  ! Ratio of energy split between sheet and background is adjustable
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT  NONE
+    ! _________________________
+    ! TRANSFER VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    DOUBLE PRECISION,INTENT(IN)::energy_input
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    DOUBLE PRECISION::u0,smooth_pm,c_factor
+    INTEGER(KIND=4) ::i_x0,i_y0,i_x1,i_x3
+    DOUBLE PRECISION::energy_sheet,energy_ratio,energy_TG
+    DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::u_sheet_y
+
+    ALLOCATE( u_sheet_y( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+
+    u0           = one
+    ! Normalizing parameter
+
+    smooth_pm    = 0.20D0
+    ! How thick the sheet is, smaller the parameter thicker it is, has to be less than 1
+
+    c_factor = smooth_pm * two_pi / thr
+    ! TO KEEP UP THE NOMENCLATURE FOR THIS STUDY.
+    ! With this factor => c_factor * i_x = smooth_pm * k_G * x = k_0 * x
+
+    energy_ratio = 0.1D0
+    ! Percentage of energy in Background field
+
+    i_x0 =     INT( N_x /  8)
+    i_y0 = 0
+    i_x1 = 1 * INT( N_x / 4 )
+    i_x3 = 3 * INT( N_x / 4 )
+
+    DO i_z = 0, N_z - 1
+  	DO i_y = 0, N_y - 1
+  	DO i_x = 0, N_x - 1
+
+      u_sheet_y( i_x, i_y, i_z ) = one + DTANH( - c_factor * DBLE( i_x - i_x1 ) ) &
+                                       + DTANH( + c_factor * DBLE( i_x - i_x3 ) )
+
+      u_x( i_x, i_y, i_z )       = + DCOS( DBLE( i_x - i_x0 ) * dx ) * DSIN( DBLE( i_y )  * dy ) * DCOS( DBLE( i_z ) * dz )
+      u_y( i_x, i_y, i_z )       = - DSIN( DBLE( i_x - i_x0 ) * dx ) * DCOS( DBLE( i_y )  * dy ) * DCOS( DBLE( i_z ) * dz )
+
+    END DO
+    END DO
+    END DO
+
+    energy_sheet = hf * SUM( u_sheet_y ** two ) / N3
+    u0           = DSQRT( ( one - energy_ratio ) * energy_input / energy_sheet )
+    u_sheet_y    = u0 * u_sheet_y
+    ! Normalization of sheet
+
+    energy_TG    = hf * SUM( ( u_x ** two ) + ( u_y ** two ) ) / N3
+    u0           = DSQRT( energy_ratio * energy_input / energy_TG )
+    u_x          = u0 * u_x
+    u_y          = u0 * u_y
+    ! Normalisation of TG flow
+
+    u_y = u_y + u_sheet_y
+    ! Combining both flows (superposition)
+
+    IC_type = 'VOR-STG'
+    ! vortex sheet with Taylor Green
+
+    CALL fft_r2c_vec( u_x, u_y, u_z, v_x, v_y, v_z )
+    ! Getting spectral velocity
+
+    DEALLOCATE(u_sheet_y)
+
+  END
+
   SUBROUTINE IC_vortex_tube(energy_input)
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
@@ -591,7 +675,7 @@ MODULE system_initialcondition
     smooth_pm    = 0.04D0
     ! How thick the sheet is, smaller the parameter thicker it is
 
-    energy_ratio = 0.01D0s
+    energy_ratio = 0.01D0
     ! Percentage of energy in Background field
 
     tube_y0      = DBLE( N_y / 2 )
