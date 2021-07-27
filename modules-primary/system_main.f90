@@ -130,7 +130,7 @@ MODULE system_main
         ! Create names, folders to save files, open files in them to write data.
         ! REF-> <<< system_basicoutput >>>
 
-        ! CALL allocate_PVD_subset_arrays
+        CALL allocate_PVD_subset_arrays
         ! Allocates arrays for PVD output for subset of data
         ! REF-> <<< system_pvdoutput >>>
 
@@ -273,13 +273,13 @@ MODULE system_main
       CALL compute_vorticity
       ! REF-> <<< system_basicfunctions >>>
 
-      CALL write_PVD_velocity
+      ! CALL write_PVD_velocity
       ! REF-> <<< system_pvdoutput >>>
 
       ! CALL write_PVD_vorticity
       ! REF-> <<< system_pvdoutput >>>
 
-      ! CALL write_PVD_vorticity_subset
+      CALL write_PVD_vorticity_subset
       ! REF-> <<< system_pvdoutput >>>
 
     END IF
@@ -322,7 +322,7 @@ MODULE system_main
     ! CALL deallocate_tr_wave_filter
     ! REF-> <<< system_advvariables >>>
 
-    ! CALL deallocate_PVD_subset_arrays
+    CALL deallocate_PVD_subset_arrays
     ! REF-> <<< system_pvdoutput >>>
 
     CALL deallocate_solver

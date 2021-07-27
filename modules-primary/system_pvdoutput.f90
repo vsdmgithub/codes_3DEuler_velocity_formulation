@@ -60,8 +60,8 @@ MODULE system_pvdoutput
     IMPLICIT NONE
 
     pvd_N_x = N_x / 2
-    pvd_N_y = N_y / 2
-    pvd_N_z = N_z / 2
+    pvd_N_y = N_y
+    pvd_N_z = N_z
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  A  L  L  O  C  A  T  I  O  N
@@ -181,11 +181,11 @@ MODULE system_pvdoutput
     ! COPYING THE SUBSET DATA
     CALL  VTR_write_var(FD=fd,NAME="Vorticity",VX=vec_x,VY=vec_y,VZ=vec_z )
 
-    vec_x = hf * w_uy(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1) + str_zx(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
-    vec_y = hf * w_ux(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1) + str_yz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
-    vec_z = str_zz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
-    ! COPYING THE SUBSET DATA
-    CALL  VTR_write_var(FD=fd,NAME="Vorticity_dot",VX=vec_x,VY=vec_y,VZ=vec_z )
+    ! vec_x = hf * w_uy(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1) + str_zx(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! vec_y = hf * w_ux(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1) + str_yz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! vec_z = str_zz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! ! COPYING THE SUBSET DATA
+    ! CALL  VTR_write_var(FD=fd,NAME="Vorticity_dot",VX=vec_x,VY=vec_y,VZ=vec_z )
 
     CALL  VTR_close_file(FD=fd)
 

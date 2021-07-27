@@ -274,7 +274,7 @@ MODULE system_basicvariables
     time_grid       = dx / v_rms_1D
     ! Time scale for particle to cross a grid
 
-    CFL_min         = 5
+    CFL_min         = 8
     ! - Courant-Friedrichs-Lewy (CFL) condition - CFL no is inverse of the above ratio
     ! No of steps (minimum) that should take to cross a grid
 

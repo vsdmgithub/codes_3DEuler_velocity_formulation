@@ -588,10 +588,10 @@ MODULE system_initialcondition
     u0           = one
     ! Normalizing parameter
 
-    smooth_pm    = 0.04D0
+    smooth_pm    = 0.1D0
     ! How thick the sheet is, smaller the parameter thicker it is
 
-    energy_ratio = 0.01D0s
+    energy_ratio = 0.01D0
     ! Percentage of energy in Background field
 
     tube_y0      = DBLE( N_y / 2 )
@@ -604,10 +604,15 @@ MODULE system_initialcondition
       tube_y                  = DBLE( i_y ) - tube_y0
       tube_z                  = DBLE( i_z ) - tube_z0
       radius                  = DSQRT( tube_y ** two + tube_z ** two )
-      arg                     = radius * smooth_pm * two_pi / thr
-      u_ang                   = arg * DEXP( - hf * ( arg ** two ) )
-      u_tube_y( :, i_y, i_z ) = - u_ang * tube_z / radius
-      u_tube_z( :, i_y, i_z ) = + u_ang * tube_y / radius
+      IF( radius .GT. tol ) THEN
+        arg                     = radius * smooth_pm * two_pi / thr
+        u_ang                   = arg * DEXP( - hf * ( arg ** two ) )
+        u_tube_y( :, i_y, i_z ) = - u_ang * tube_z / radius
+        u_tube_z( :, i_y, i_z ) = + u_ang * tube_y / radius
+      ELSE
+        u_tube_y( :, i_y, i_z ) = zero
+        u_tube_z( :, i_y, i_z ) = zero
+      END IF
 
     END DO
     END DO
