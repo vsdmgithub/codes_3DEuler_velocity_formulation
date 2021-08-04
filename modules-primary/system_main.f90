@@ -130,9 +130,12 @@ MODULE system_main
         ! Create names, folders to save files, open files in them to write data.
         ! REF-> <<< system_basicoutput >>>
 
-        CALL allocate_PVD_subset_arrays
+        ! CALL allocate_PVD_subset_arrays
         ! Allocates arrays for PVD output for subset of data
         ! REF-> <<< system_pvdoutput >>>
+
+        CALL allocate_shell_grid
+        ! REF-> <<< system_advvariables >>>
 
       END IF
 
@@ -236,8 +239,11 @@ MODULE system_main
     CALL compute_spectral_data
     ! REF-> <<< system_basicfunctions >>>
 
-    CALL write_test_data
+    ! CALL write_test_data
     ! REF-> <<< system_basicoutput >>>
+
+    CALL compute_shell_grid_data
+    ! REF-> <<< system_advfunctions >>>
 
     IF (MOD(t_step,t_step_save) .EQ. 0) THEN
 
@@ -260,8 +266,11 @@ MODULE system_main
       ! CALL write_PVD_vorticity
       ! REF-> <<< system_pvdoutput >>>
 
-      CALL write_PVD_vorticity_subset
+      ! CALL write_PVD_vorticity_subset
       ! REF-> <<< system_pvdoutput >>>
+
+      CALL write_PVD_shell_grid
+      ! REF-> <<< system_advoutput >>>
 
     END IF
 
@@ -291,13 +300,16 @@ MODULE system_main
     ! CALL fft_c2r_vec( v_x, v_y, v_z, u_x, u_y, u_z )
     ! Making sure, 'v' and 'u' are upto same evolution step
 
+    CALL deallocate_shell_grid
+    ! REF-> <<< system_advvariables >>>
+
     ! CALL write_spectral_velocity
     ! REF-> <<< system_basicoutput >>>
 
     ! CALL write_velocity
     ! REF-> <<< system_basicoutput >>>
 
-    CALL deallocate_PVD_subset_arrays
+    ! CALL deallocate_PVD_subset_arrays
     ! REF-> <<< system_pvdoutput >>>
 
     CALL deallocate_solver

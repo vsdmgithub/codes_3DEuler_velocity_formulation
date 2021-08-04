@@ -38,16 +38,18 @@ MODULE system_advvariables
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
   INTEGER(KIND=4)  :: dum_int
   INTEGER(KIND=4)  :: gr1_size,gr2_size
-  INTEGER(KIND=4)  ::ind_1,ind_2
+  INTEGER(KIND=4)  :: ind_1,ind_2
   DOUBLE PRECISION :: dum_double
   ! _________________________
   ! ARRAYS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
-  DOUBLE PRECISION,DIMENSION(:) ::shell_en_XS1, shell_es_XS1
-  DOUBLE PRECISION,DIMENSION(:) ::shell_en_XS2, shell_es_XS2
-  INTEGER(KIND=4),DIMENSION(:)  ::sh_gr1_x,sh_gr1_y,sh_gr1_z
-  INTEGER(KIND=4),DIMENSION(:)  ::sh_gr2_x,sh_gr2_y,sh_gr2_z
-  DOUBLE PRECISION,DIMENSION(:),ALLOCATABLE::dummy_ar
+  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::shell_en_matrix, shell_es_matrix
+  DOUBLE PRECISION,DIMENSION(:),ALLOCATABLE ::shell_en_XS1, shell_es_XS1
+  DOUBLE PRECISION,DIMENSION(:),ALLOCATABLE ::shell_en_XS2, shell_es_XS2
+  INTEGER(KIND=4),DIMENSION(:),ALLOCATABLE  ::sh_gr1_x,sh_gr1_y,sh_gr1_z
+  INTEGER(KIND=4),DIMENSION(:),ALLOCATABLE  ::sh_gr2_x,sh_gr2_y,sh_gr2_z
+  DOUBLE PRECISION,DIMENSION(:),ALLOCATABLE ::k_x_axis,k_y_axis,k_z_axis
+  DOUBLE PRECISION,DIMENSION(:),ALLOCATABLE ::dummy_ar
 
   CONTAINS
 
@@ -155,6 +157,25 @@ MODULE system_advvariables
     ALLOCATE( shell_es_XS1( gr1_size ) )
     ALLOCATE( shell_es_XS2( gr2_size ) )
 
+    ALLOCATE( k_x_axis( kMin_x:kMax_x ) )
+    ALLOCATE( k_y_axis( kMin_y:kMax_y ) )
+    ALLOCATE( k_z_axis( kMin_z:kMax_z ) )
+
+    DO j_x = kMin_x, kMax_x
+      k_x_axis( j_x ) = K_scale_x * DBLE( j_x )
+    END DO
+
+    DO j_y = kMin_y, kMax_y
+      k_y_axis( j_y ) = K_scale_y * DBLE( j_y )
+    END DO
+
+    DO j_z = kMin_z, kMax_z
+      k_z_axis( j_z ) = K_scale_z * DBLE( j_z )
+    END DO
+
+    CALL write_shell_grid_XS
+    ! REF-> <<< system_advoutput >>>
+    
   END
 
   SUBROUTINE deallocate_shell_grid
@@ -167,7 +188,7 @@ MODULE system_advvariables
     IMPLICIT NONE
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    !  A  L  L  O  C  A  T  I  O  N
+    !  D  E  A  L  L  O  C  A  T  I  O  N
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     DEALLOCATE( sh_gr1_x, sh_gr1_y, sh_gr1_z )
     DEALLOCATE( sh_gr2_x, sh_gr2_y, sh_gr2_z )
@@ -175,6 +196,7 @@ MODULE system_advvariables
     DEALLOCATE( shell_en_XS2 )
     DEALLOCATE( shell_es_XS1 )
     DEALLOCATE( shell_es_XS2 )
+    DEALLOCATE( k_x_axis, k_y_axis, k_z_axis )
 
   END
 
