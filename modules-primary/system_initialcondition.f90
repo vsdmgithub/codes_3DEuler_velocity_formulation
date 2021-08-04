@@ -580,7 +580,8 @@ MODULE system_initialcondition
     ! LOCAL VARIABLES
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
     DOUBLE PRECISION::u0,smooth_pm,c_factor
-    INTEGER(KIND=4) ::i_x0,i_y0,i_x1,i_x3
+    INTEGER(KIND=4) ::i_x0,i_y0,i_z0
+    INTEGER(KIND=4) ::i_x1,i_x3
     DOUBLE PRECISION::energy_sheet,energy_ratio,energy_TG
     DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::u_sheet_y
 
@@ -589,18 +590,20 @@ MODULE system_initialcondition
     u0           = one
     ! Normalizing parameter
 
-    smooth_pm    = 0.20D0
+    smooth_pm    = 0.8D0
     ! How thick the sheet is, smaller the parameter thicker it is, has to be less than 1
 
     c_factor = smooth_pm * two_pi / thr
     ! TO KEEP UP THE NOMENCLATURE FOR THIS STUDY.
     ! With this factor => c_factor * i_x = smooth_pm * k_G * x = k_0 * x
 
-    energy_ratio = 0.1D0
+    energy_ratio = 0.005D0
     ! Percentage of energy in Background field
 
-    i_x0 =     INT( N_x /  8)
+    ! i_x0 =     INT( N_x /  8)
+    i_x0 = 0
     i_y0 = 0
+    i_z0 = 0
     i_x1 = 1 * INT( N_x / 4 )
     i_x3 = 3 * INT( N_x / 4 )
 
@@ -608,11 +611,15 @@ MODULE system_initialcondition
   	DO i_y = 0, N_y - 1
   	DO i_x = 0, N_x - 1
 
-      u_sheet_y( i_x, i_y, i_z ) = one + DTANH( - c_factor * DBLE( i_x - i_x1 ) ) &
+      u_sheet_y( i_x, i_y, i_z ) = two + DTANH( - c_factor * DBLE( i_x - i_x1 ) ) &
                                        + DTANH( + c_factor * DBLE( i_x - i_x3 ) )
 
-      u_x( i_x, i_y, i_z )       = + DCOS( DBLE( i_x - i_x0 ) * dx ) * DSIN( DBLE( i_y )  * dy ) * DCOS( DBLE( i_z ) * dz )
-      u_y( i_x, i_y, i_z )       = - DSIN( DBLE( i_x - i_x0 ) * dx ) * DCOS( DBLE( i_y )  * dy ) * DCOS( DBLE( i_z ) * dz )
+      u_x( i_x, i_y, i_z )       = + DCOS( DBLE( i_x - i_x0 ) * dx )&
+                                   * DSIN( DBLE( i_y - i_y0 ) * dy )&
+                                   * DCOS( DBLE( i_z - i_z0 ) * dz )
+      u_y( i_x, i_y, i_z )       = - DSIN( DBLE( i_x - i_x0 ) * dx )&
+                                   * DCOS( DBLE( i_y - i_y0 ) * dy )&
+                                   * DCOS( DBLE( i_z - i_z0 ) * dz )
 
     END DO
     END DO

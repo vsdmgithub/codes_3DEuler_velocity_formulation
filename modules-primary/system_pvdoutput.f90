@@ -59,9 +59,9 @@ MODULE system_pvdoutput
 
     IMPLICIT NONE
 
-    pvd_N_x = N_x / 2
+    pvd_N_x = N_x
     pvd_N_y = N_y
-    pvd_N_z = N_z / 2
+    pvd_N_z = N_z / 32
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  A  L  L  O  C  A  T  I  O  N
@@ -192,8 +192,18 @@ MODULE system_pvdoutput
     ! vec_z = str_zz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
 
     scalr = str_xx(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
-    ! COPYING THE SUBSET DATA
     CALL VTR_write_var(FD=fd, NAME='S_xx', FIELD= scalr)
+    scalr = str_yy(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    CALL VTR_write_var(FD=fd, NAME='S_yy', FIELD= scalr)
+    scalr = str_zz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    CALL VTR_write_var(FD=fd, NAME='S_zz', FIELD= scalr)
+    scalr = str_xy(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    CALL VTR_write_var(FD=fd, NAME='S_xy', FIELD= scalr)
+    scalr = str_yz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    CALL VTR_write_var(FD=fd, NAME='S_yz', FIELD= scalr)
+    scalr = str_zx(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    CALL VTR_write_var(FD=fd, NAME='S_zx', FIELD= scalr)
+    ! COPYING THE SUBSET DATA
 
     CALL  VTR_close_file(FD=fd)
 
