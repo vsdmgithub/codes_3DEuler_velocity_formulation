@@ -37,13 +37,20 @@ MODULE system_advvariables
   ! VARIABLES
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
   INTEGER(KIND=4)  :: dum_int
+  INTEGER(KIND=4)  :: gr1_size,gr2_size
+  INTEGER(KIND=4)  ::ind_1,ind_2
   DOUBLE PRECISION :: dum_double
   ! _________________________
   ! ARRAYS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
+  DOUBLE PRECISION,DIMENSION(:) ::shell_en_XS1, shell_es_XS1
+  DOUBLE PRECISION,DIMENSION(:) ::shell_en_XS2, shell_es_XS2
+  INTEGER(KIND=4),DIMENSION(:)  ::sh_gr1_x,sh_gr1_y,sh_gr1_z
+  INTEGER(KIND=4),DIMENSION(:)  ::sh_gr2_x,sh_gr2_y,sh_gr2_z
   DOUBLE PRECISION,DIMENSION(:),ALLOCATABLE::dummy_ar
 
   CONTAINS
+
 
   SUBROUTINE allocate_dummy
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -58,6 +65,116 @@ MODULE system_advvariables
     !  A  L  L  O  C  A  T  I  O  N
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ALLOCATE( dummy_ar(10) )
+
+  END
+
+  SUBROUTINE deallocate_dummy
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL this to deallocate
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  A  L  L  O  C  A  T  I  O  N
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    DEALLOCATE( dummy_ar(10) )
+
+  END
+
+  SUBROUTINE allocate_shell_grid
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL this to allocate
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    DOUBLE PRECISION::Delta_k, k_mod
+
+    Delta_k = one
+    ind_1   = 0
+    ind_2   = 0
+
+    DO j_x = kMin_x, kMax_x
+  	DO j_y = kMin_y, kMax_y
+  	DO j_z = kMin_z, kMax_z
+
+      k_mod    = DSQRT( k_2( j_x, j_y, j_z ) )
+
+      IF ( DABS( k_mod - k_G ) .LT. Delta_k ) THEN
+        ind_1  = ind_2 + 1
+      END IF
+
+      IF ( DABS( k_mod - k_G ) .LT. Delta_k ) THEN
+        ind_2  = ind_2 + 1
+      END IF
+
+      gr1_size = ind_1
+      gr2_size = ind_2
+
+    END DO
+    END DO
+    END DO
+
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  A  L  L  O  C  A  T  I  O  N
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    ALLOCATE( sh_gr1_x( gr1_size ),sh_gr1_y( gr1_size ),sh_gr1_z( gr1_size )   )
+    ALLOCATE( sh_gr2_x( gr2_size ),sh_gr2_y( gr2_size ),sh_gr2_z( gr2_size )   )
+
+    DO j_x = kMin_x, kMax_x
+  	DO j_y = kMin_y, kMax_y
+  	DO j_z = kMin_z, kMax_z
+
+      k_mod                    = DSQRT( k_2( j_x, j_y, j_z ) )
+
+      IF ( DABS( k_mod - k_G ) .LT. Delta_k ) THEN
+        sh_gr1_x( ind_1 ) = j_x
+        sh_gr1_y( ind_1 ) = j_y
+        sh_gr1_z( ind_1 ) = j_z
+      END IF
+
+      IF ( DABS( k_mod - k_G ) .LT. Delta_k ) THEN
+        sh_gr2_x( ind_2 ) = j_x
+        sh_gr2_y( ind_2 ) = j_y
+        sh_gr2_z( ind_2 ) = j_z
+      END IF
+
+    END DO
+    END DO
+    END DO
+
+    ALLOCATE( shell_ex_XS1( gr1_size ) )
+    ALLOCATE( shell_ex_XS2( gr2_size ) )
+    ALLOCATE( shell_es_XS1( gr1_size ) )
+    ALLOCATE( shell_es_XS2( gr2_size ) )
+
+  END
+
+  SUBROUTINE deallocate_shell_grid
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL this to deallocate
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  A  L  L  O  C  A  T  I  O  N
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    DEALLOCATE( sh_gr1_x, sh_gr1_y, sh_gr1_z )
+    DEALLOCATE( sh_gr2_x, sh_gr2_y, sh_gr2_z )
+    DEALLOCATE( shell_en_XS1 )
+    DEALLOCATE( shell_en_XS2 )
+    DEALLOCATE( shell_es_XS1 )
+    DEALLOCATE( shell_es_XS2 )
 
   END
 

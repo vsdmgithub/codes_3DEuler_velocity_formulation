@@ -54,4 +54,34 @@ MODULE system_advfunctions
 
   END
 
+  SUBROUTINE compute_shell_grid_data
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL this to get data on the shell grid - list of |\K
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+
+    DO ind_1 = 1, gr1_size
+      shell_en_XS1( ind_1 ) = CDABS( v_x(sh_gr1_x,sh_gr1_y,sh_gr1_z ) )**two + &
+                              CDABS( v_y(sh_gr1_x,sh_gr1_y,sh_gr1_z ) )**two + &
+                              CDABS( v_z(sh_gr1_x,sh_gr1_y,sh_gr1_z ) )**two
+      shell_es_XS1( ind_1 ) = CDABS( w_ux(sh_gr1_x,sh_gr1_y,sh_gr1_z ) )**two + &
+                              CDABS( w_uy(sh_gr1_x,sh_gr1_y,sh_gr1_z ) )**two + &
+                              CDABS( w_uz(sh_gr1_x,sh_gr1_y,sh_gr1_z ) )**two
+    END DO
+    DO ind_2 = 1, gr2_size
+      shell_en_XS2( ind_2 ) = CDABS( v_x(sh_gr2_x,sh_gr2_y,sh_gr2_z ) )**two + &
+                              CDABS( v_y(sh_gr2_x,sh_gr2_y,sh_gr2_z ) )**two + &
+                              CDABS( v_z(sh_gr2_x,sh_gr2_y,sh_gr2_z ) )**two
+      shell_es_XS2( ind_2 ) = CDABS( w_ux(sh_gr2_x,sh_gr2_y,sh_gr2_z ) )**two + &
+                              CDABS( w_uy(sh_gr2_x,sh_gr2_y,sh_gr2_z ) )**two + &
+                              CDABS( w_uz(sh_gr2_x,sh_gr2_y,sh_gr2_z ) )**two
+    END DO
+
+    CALL write_shell_grid_data_PVD
+
+  END
+
 END MODULE system_advfunctions
