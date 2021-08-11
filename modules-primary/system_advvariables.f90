@@ -36,7 +36,7 @@ MODULE system_advvariables
   ! _________________________
   ! VARIABLES
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
-  INTEGER(KIND=4)  :: dum_int
+  INTEGER(KIND=4)  :: k_P
   INTEGER(KIND=4)  :: gr1_size,gr2_size
   INTEGER(KIND=4)  :: ind_1,ind_2
   DOUBLE PRECISION :: dum_double
@@ -49,42 +49,8 @@ MODULE system_advvariables
   INTEGER(KIND=4),DIMENSION(:),ALLOCATABLE  ::sh_gr1_x,sh_gr1_y,sh_gr1_z
   INTEGER(KIND=4),DIMENSION(:),ALLOCATABLE  ::sh_gr2_x,sh_gr2_y,sh_gr2_z
   DOUBLE PRECISION,DIMENSION(:),ALLOCATABLE ::k_x_axis,k_y_axis,k_z_axis
-  DOUBLE PRECISION,DIMENSION(:),ALLOCATABLE ::dummy_ar
 
   CONTAINS
-
-
-  SUBROUTINE allocate_dummy
-  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  ! ------------
-  ! CALL this to allocate
-  ! -------------
-  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-    IMPLICIT NONE
-
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    !  A  L  L  O  C  A  T  I  O  N
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    ALLOCATE( dummy_ar(10) )
-
-  END
-
-  SUBROUTINE deallocate_dummy
-  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  ! ------------
-  ! CALL this to deallocate
-  ! -------------
-  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-    IMPLICIT NONE
-
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    !  A  L  L  O  C  A  T  I  O  N
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    DEALLOCATE( dummy_ar(10) )
-
-  END
 
   SUBROUTINE allocate_shell_grid
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -102,6 +68,7 @@ MODULE system_advvariables
     Delta_k = one
     ind_1   = 0
     ind_2   = 0
+    k_P     = k_G - 5
 
     DO j_x = kMin_x, kMax_x
   	DO j_y = kMin_y, kMax_y
@@ -110,20 +77,22 @@ MODULE system_advvariables
       k_mod    = DSQRT( k_2( j_x, j_y, j_z ) )
 
       IF ( DABS( k_mod - k_G ) .LT. Delta_k ) THEN
-        ind_1  = ind_2 + 1
+        ind_1  = ind_1 + 1
       END IF
 
-      IF ( DABS( k_mod - k_G ) .LT. Delta_k ) THEN
+      IF ( DABS( k_mod - k_P ) .LT. Delta_k ) THEN
         ind_2  = ind_2 + 1
       END IF
 
-      gr1_size = ind_1
-      gr2_size = ind_2
-
     END DO
     END DO
     END DO
 
+    gr1_size = ind_1
+    gr2_size = ind_2
+
+    ind_1   = 0
+    ind_2   = 0
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  A  L  L  O  C  A  T  I  O  N
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -137,12 +106,14 @@ MODULE system_advvariables
       k_mod                    = DSQRT( k_2( j_x, j_y, j_z ) )
 
       IF ( DABS( k_mod - k_G ) .LT. Delta_k ) THEN
+        ind_1             = ind_1 + 1
         sh_gr1_x( ind_1 ) = j_x
         sh_gr1_y( ind_1 ) = j_y
         sh_gr1_z( ind_1 ) = j_z
       END IF
 
-      IF ( DABS( k_mod - k_G ) .LT. Delta_k ) THEN
+      IF ( DABS( k_mod - k_P ) .LT. Delta_k ) THEN
+        ind_2             = ind_2 + 1
         sh_gr2_x( ind_2 ) = j_x
         sh_gr2_y( ind_2 ) = j_y
         sh_gr2_z( ind_2 ) = j_z
@@ -152,9 +123,9 @@ MODULE system_advvariables
     END DO
     END DO
 
-    ALLOCATE( shell_ex_XS1( gr1_size ) )
-    ALLOCATE( shell_ex_XS2( gr2_size ) )
+    ALLOCATE( shell_en_XS1( gr1_size ) )
     ALLOCATE( shell_es_XS1( gr1_size ) )
+    ALLOCATE( shell_en_XS2( gr2_size ) )
     ALLOCATE( shell_es_XS2( gr2_size ) )
 
     ALLOCATE( k_x_axis( kMin_x:kMax_x ) )
@@ -173,9 +144,9 @@ MODULE system_advvariables
       k_z_axis( j_z ) = K_scale_z * DBLE( j_z )
     END DO
 
-    CALL write_shell_grid_XS
-    ! REF-> <<< system_advoutput >>>
-    
+    ALLOCATE( shell_en_matrix( kMin_x   : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE( shell_es_matrix( kMin_x   : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+
   END
 
   SUBROUTINE deallocate_shell_grid
@@ -197,6 +168,8 @@ MODULE system_advvariables
     DEALLOCATE( shell_es_XS1 )
     DEALLOCATE( shell_es_XS2 )
     DEALLOCATE( k_x_axis, k_y_axis, k_z_axis )
+    DEALLOCATE( shell_en_matrix )
+    DEALLOCATE( shell_es_matrix )
 
   END
 

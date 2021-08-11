@@ -37,23 +37,6 @@ MODULE system_advfunctions
 
   CONTAINS
 
-  SUBROUTINE compute_dummy
-  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  ! ------------
-  ! CALL this to get the
-  ! -------------
-  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-    IMPLICIT NONE
-
-    DO dum_int = 1,10
-
-      dummy_ar( dum_int ) = 1.0D0
-
-    END DO
-
-  END
-
   SUBROUTINE compute_shell_grid_data
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
@@ -63,21 +46,28 @@ MODULE system_advfunctions
 
     IMPLICIT NONE
 
+    IF ( t_step .EQ. 0 ) THEN
+
+      CALL write_shell_grid_XS
+      ! REF-> <<< system_advoutput >>>
+
+    END IF
+    
     DO ind_1 = 1, gr1_size
-      shell_en_XS1( ind_1 ) = CDABS( v_x(sh_gr1_x,sh_gr1_y,sh_gr1_z ) )**two + &
-                              CDABS( v_y(sh_gr1_x,sh_gr1_y,sh_gr1_z ) )**two + &
-                              CDABS( v_z(sh_gr1_x,sh_gr1_y,sh_gr1_z ) )**two
-      shell_es_XS1( ind_1 ) = CDABS( w_ux(sh_gr1_x,sh_gr1_y,sh_gr1_z ) )**two + &
-                              CDABS( w_uy(sh_gr1_x,sh_gr1_y,sh_gr1_z ) )**two + &
-                              CDABS( w_uz(sh_gr1_x,sh_gr1_y,sh_gr1_z ) )**two
+      shell_en_XS1( ind_1 ) = CDABS( v_x(sh_gr1_x(ind_1),sh_gr1_y(ind_1),sh_gr1_z(ind_1) ) )**two + &
+                              CDABS( v_y(sh_gr1_x(ind_1),sh_gr1_y(ind_1),sh_gr1_z(ind_1) ) )**two + &
+                              CDABS( v_z(sh_gr1_x(ind_1),sh_gr1_y(ind_1),sh_gr1_z(ind_1) ) )**two
+      shell_es_XS1( ind_1 ) = CDABS( w_vx(sh_gr1_x(ind_1),sh_gr1_y(ind_1),sh_gr1_z(ind_1) ) )**two + &
+                              CDABS( w_vy(sh_gr1_x(ind_1),sh_gr1_y(ind_1),sh_gr1_z(ind_1) ) )**two + &
+                              CDABS( w_vz(sh_gr1_x(ind_1),sh_gr1_y(ind_1),sh_gr1_z(ind_1) ) )**two
     END DO
     DO ind_2 = 1, gr2_size
-      shell_en_XS2( ind_2 ) = CDABS( v_x(sh_gr2_x,sh_gr2_y,sh_gr2_z ) )**two + &
-                              CDABS( v_y(sh_gr2_x,sh_gr2_y,sh_gr2_z ) )**two + &
-                              CDABS( v_z(sh_gr2_x,sh_gr2_y,sh_gr2_z ) )**two
-      shell_es_XS2( ind_2 ) = CDABS( w_ux(sh_gr2_x,sh_gr2_y,sh_gr2_z ) )**two + &
-                              CDABS( w_uy(sh_gr2_x,sh_gr2_y,sh_gr2_z ) )**two + &
-                              CDABS( w_uz(sh_gr2_x,sh_gr2_y,sh_gr2_z ) )**two
+      shell_en_XS2( ind_2 ) = CDABS( v_x(sh_gr2_x(ind_2),sh_gr2_y(ind_2),sh_gr2_z(ind_2) ) )**two + &
+                              CDABS( v_y(sh_gr2_x(ind_2),sh_gr2_y(ind_2),sh_gr2_z(ind_2) ) )**two + &
+                              CDABS( v_z(sh_gr2_x(ind_2),sh_gr2_y(ind_2),sh_gr2_z(ind_2) ) )**two
+      shell_es_XS2( ind_2 ) = CDABS( w_vx(sh_gr2_x(ind_2),sh_gr2_y(ind_2),sh_gr2_z(ind_2) ) )**two + &
+                              CDABS( w_vy(sh_gr2_x(ind_2),sh_gr2_y(ind_2),sh_gr2_z(ind_2) ) )**two + &
+                              CDABS( w_vz(sh_gr2_x(ind_2),sh_gr2_y(ind_2),sh_gr2_z(ind_2) ) )**two
     END DO
 
     CALL write_shell_grid_data

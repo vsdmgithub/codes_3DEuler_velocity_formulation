@@ -81,6 +81,7 @@ MODULE system_basicvariables
   DOUBLE PRECISION ::enstrophy
   DOUBLE PRECISION ::norm_factor
   DOUBLE PRECISION ::energy_mode
+  DOUBLE PRECISION ::enstrophy_mode
   ! _________________________
   ! CHARACTERS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!

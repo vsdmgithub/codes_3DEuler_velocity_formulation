@@ -41,31 +41,6 @@ MODULE system_advoutput
 
   CONTAINS
 
-  SUBROUTINE write_dummy
-  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  ! ------------
-  ! CALL this to write the list of exponents
-  ! -------------
-  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-    IMPLICIT NONE
-
-    file_name = TRIM( ADJUSTL( file_address ) ) // 'dummy.dat'
-
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    OPEN(unit = 8880, file = file_name )
-
-    DO dum_int = 1,10
-
-      WRITE(8880,f_d8p4,ADVANCE ='yes') dummy_ar( dum_int )
-
-    END DO
-
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    CLOSE(8880)
-
-  END
-
   SUBROUTINE write_PVD_shell_grid
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
@@ -78,26 +53,59 @@ MODULE system_advoutput
     ! WRITE (file_time,f_d8p4) time_now
     ! Writes 'time_now' as a CHARACTER
 
-    file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_2D ) ) &
-                // 'sh_gr1_t'
+    file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_3D ) ) &
+                // 'modal_t'
+
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    !   VORTICITY - PVD FORMAT
+    !  SHELL DATA
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     CALL  VTR_open_file(PREFIX=file_name,FD=fd)
 
     CALL  VTR_write_mesh(FD=fd,X=k_x_axis,Y=k_y_axis,Z=k_z_axis)
 
-    ALLOCATE( shell_en_matrix( kMin_x   : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
-    ALLOCATE( shell_es_matrix( kMin_x   : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    shell_en_matrix                                   = zero
+    shell_es_matrix                                   = zero
 
-    shell_en_matrix                                   = - 100.0D0
-    shell_es_matrix                                   = - 100.0D0
+    ! DO ind_1 = 1, gr1_size
+    !
+    !   IF ( shell_en_XS1( ind_1 ) .GT. tol ) THEN
+    !     shell_en_matrix( sh_gr1_x( ind_1 ), sh_gr1_y( ind_1 ), sh_gr1_z( ind_1 ) ) = DLOG( shell_en_XS1( ind_1 ) / tol )
+    !   END IF
+    !   IF ( shell_es_XS1( ind_1 ) .GT. tol ) THEN
+    !     shell_es_matrix( sh_gr1_x( ind_1 ), sh_gr1_y( ind_1 ), sh_gr1_z( ind_1 ) ) = DLOG( shell_es_XS1( ind_1 ) / tol )
+    !   END IF
+    !
+    ! END DO
+    ! !
+    ! DO ind_2 = 1, gr2_size
+    !
+    !   IF ( shell_en_XS2( ind_2 ) .GT. tol ) THEN
+    !     shell_en_matrix( sh_gr2_x( ind_2 ), sh_gr2_y( ind_2 ), sh_gr2_z( ind_2 ) ) = DLOG( shell_en_XS2( ind_2 ) / tol )
+    !   END IF
+    !   IF ( shell_es_XS2( ind_2 ) .GT. tol ) THEN
+    !     shell_es_matrix( sh_gr2_x( ind_2 ), sh_gr2_y( ind_2 ), sh_gr2_z( ind_2 ) ) = DLOG( shell_es_XS2( ind_2 ) / tol )
+    !   END IF
+    !
+    ! END DO
 
-    DO ind_1 = 1, gr1_size
+    DO i_x = kMin_x, kMax_x
+    DO i_y = kMin_y, kMax_y
+  	DO i_z = kMin_z, kMax_z
+      energy_mode = CDABS( v_x( i_x, i_y, i_z ) ) ** two + &
+                    CDABS( v_y( i_x, i_y, i_z ) ) ** two + &
+                    CDABS( v_z( i_x, i_y, i_z ) ) ** two
+      IF ( hf * energy_mode .GT. tol ) THEN
+        shell_en_matrix( i_x, i_y, i_z ) = DLOG( hf * energy_mode / tol )
+      END IF
+      enstrophy_mode = CDABS( w_vx( i_x, i_y, i_z ) ) ** two + &
+                       CDABS( w_vy( i_x, i_y, i_z ) ) ** two + &
+                       CDABS( w_vz( i_x, i_y, i_z ) ) ** two
+      IF ( hf * enstrophy_mode .GT. tol ) THEN
+        shell_es_matrix( i_x, i_y, i_z ) = DLOG( hf * enstrophy_mode / tol )
+      END IF
 
-      shell_en_matrix( sh_gr1_x, sh_gr1_y, sh_gr1_z ) = DLOG( shell_en_XS1( ind_1 ) )
-      shell_es_matrix( sh_gr1_x, sh_gr1_y, sh_gr1_z ) = DLOG( shell_es_XS1( ind_1 ) )
-
+    END DO
+    END DO
     END DO
 
     CALL VTR_write_var(FD=fd, NAME='Energy',FIELD=shell_en_matrix)
@@ -108,9 +116,6 @@ MODULE system_advoutput
 
     ! CALL  VTR_collect_file( FD = fd )
     ! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    DEALLOCATE( shell_en_matrix )
-    DEALLOCATE( shell_es_matrix )
 
   END
 
@@ -132,12 +137,15 @@ MODULE system_advoutput
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     OPEN( UNIT = 4230, FILE = file_name )
     DO ind_1 = 1, gr1_size
-
-      WRITE(4230,f_d32p17,ADVANCE ='no')  k_x_axis( sh_gr1_x( ind_1 ) )
-      WRITE(4230,f_d32p17,ADVANCE ='no')  k_y_axis( sh_gr1_y( ind_1 ) )
-      WRITE(4230,f_d32p17,ADVANCE ='yes') k_z_axis( sh_gr1_z( ind_1 ) )
-
+      !
+      WRITE(4230,f_d8p4,ADVANCE ='no')  k_x_axis( sh_gr1_x( ind_1 ) )
+      WRITE(4230,f_d8p4,ADVANCE ='no')  k_y_axis( sh_gr1_y( ind_1 ) )
+      WRITE(4230,f_d8p4,ADVANCE ='yes') k_z_axis( sh_gr1_z( ind_1 ) )
+      !
     END DO
+
+    CLOSE(4230)
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_2D ) ) &
                 // 'sh_gr2_XS'// '.dat'
@@ -146,11 +154,11 @@ MODULE system_advoutput
     !  E  N  E  R  G  Y      S  P  E  C  T  R  U  M
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     OPEN( UNIT = 4232, FILE = file_name )
-    DO ind_1 = 2, gr1_size
+    DO ind_2 = 1, gr2_size
 
-      WRITE(4232,f_d32p17,ADVANCE ='no')  k_x_axis( sh_gr2_x( ind_2 ) )
-      WRITE(4232,f_d32p17,ADVANCE ='no')  k_y_axis( sh_gr2_y( ind_2 ) )
-      WRITE(4232,f_d32p17,ADVANCE ='yes') k_z_axis( sh_gr2_z( ind_2 ) )
+      WRITE(4232,f_d8p4,ADVANCE ='no')  k_x_axis( sh_gr2_x( ind_2 ) )
+      WRITE(4232,f_d8p4,ADVANCE ='no')  k_y_axis( sh_gr2_y( ind_2 ) )
+      WRITE(4232,f_d8p4,ADVANCE ='yes') k_z_axis( sh_gr2_z( ind_2 ) )
 
     END DO
 
