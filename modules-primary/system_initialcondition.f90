@@ -53,10 +53,6 @@ MODULE system_initialcondition
 
     IMPLICIT  NONE
 
-    CALL init_fft_size( N_x, N_y, N_z )
-    ! Initializing the size of domain for FFT's in simulation - One time procedure.
-    ! REF-> <<< system_fftw_adv >>>
-
     ! Initializing the initial velocity (spectral) and projecting it so that the flow is incompressible.
 
     ! CALL IC_exp_decaying_spectrum(energy_initial)
@@ -72,9 +68,12 @@ MODULE system_initialcondition
     ! Creates a vortex sheets at z = +pi/2, -pi/2, pointing along y direction.
     ! With a background field from IC_exp_decaying_spectrum
 
-    CALL IC_vortex_sheet_with_TG(energy_initial)
+    ! CALL IC_vortex_sheet_with_TG(energy_initial)
     ! Creates a vortex sheets at z = +pi/2, -pi/2, pointing along y direction.
     ! With a background field from Taylor Green
+
+    CALL IC_TG(energy_initial)
+    ! Creates the Taylor green initial condition
 
     ! CALL IC_vortex_tube(energy_initial)
     ! Creates a vortex tube at z = 0, along z direction.
@@ -597,8 +596,8 @@ MODULE system_initialcondition
     ! TO KEEP UP THE NOMENCLATURE FOR THIS STUDY.
     ! With this factor => c_factor * i_x = smooth_pm * k_G * x = k_0 * x
 
-    energy_ratio = 0.005D0
-    ! Percentage of energy in Background field
+    energy_ratio =10
+    ! Ratio of energy between sheet and TG flow.
 
     ! i_x0 =     INT( N_x /  8)
     i_x0 = 0
@@ -626,15 +625,21 @@ MODULE system_initialcondition
     END DO
 
     energy_sheet = hf * SUM( u_sheet_y ** two ) / N3
-    u0           = DSQRT( ( one - energy_ratio ) * energy_input / energy_sheet )
+    u0           = DSQRT( energy_ratio * energy_input / energy_sheet )
     u_sheet_y    = u0 * u_sheet_y
     ! Normalization of sheet
 
     energy_TG    = hf * SUM( ( u_x ** two ) + ( u_y ** two ) ) / N3
-    u0           = DSQRT( energy_ratio * energy_input / energy_TG )
+    u0           = DSQRT( energy_input / energy_TG )
     u_x          = u0 * u_x
     u_y          = u0 * u_y
     ! Normalisation of TG flow
+
+    u_y_VX       =  u_sheet_y
+    CALL fft_r2c( u_y_VX, v_y_VX )
+    CALL fft_c2r( i * k_x * v_y_VX, w_uz_VX)
+    CALL fft_c2r( - k_x * k_x * v_y_VX, w_uz_VX_der)
+    ! Frozen sheet
 
     u_y = u_y + u_sheet_y
     ! Combining both flows (superposition)
@@ -646,6 +651,62 @@ MODULE system_initialcondition
     ! Getting spectral velocity
 
     DEALLOCATE(u_sheet_y)
+
+  END
+
+  SUBROUTINE IC_TG(energy_input)
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+  ! Get a initial condition of taylor green type
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT  NONE
+    ! _________________________
+    ! TRANSFER VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    DOUBLE PRECISION,INTENT(IN)::energy_input
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    DOUBLE PRECISION::u0
+    INTEGER(KIND=4) ::i_x0,i_y0,i_z0
+    DOUBLE PRECISION::energy_TG
+
+    u0           = one
+    ! Normalizing parameter
+
+    i_x0 = 0
+    i_y0 = 0
+    i_z0 = 0
+
+    DO i_z = 0, N_z - 1
+  	DO i_y = 0, N_y - 1
+  	DO i_x = 0, N_x - 1
+
+      u_x( i_x, i_y, i_z )       = + DCOS( DBLE( i_x - i_x0 ) * dx )&
+                                   * DSIN( DBLE( i_y - i_y0 ) * dy )&
+                                   * DCOS( DBLE( i_z - i_z0 ) * dz )
+      u_y( i_x, i_y, i_z )       = - DSIN( DBLE( i_x - i_x0 ) * dx )&
+                                   * DCOS( DBLE( i_y - i_y0 ) * dy )&
+                                   * DCOS( DBLE( i_z - i_z0 ) * dz )
+
+    END DO
+    END DO
+    END DO
+
+    energy_TG    = hf * SUM( ( u_x ** two ) + ( u_y ** two ) ) / N3
+    u0           = DSQRT( energy_input / energy_TG )
+    u_x          = u0 * u_x
+    u_y          = u0 * u_y
+    ! Normalisation of TG flow
+
+    IC_type = 'TG'
+    ! vortex sheet with Taylor Green
+
+    CALL fft_r2c_vec( u_x, u_y, u_z, v_x, v_y, v_z )
+    ! Getting spectral velocity
 
   END
 

@@ -50,6 +50,21 @@ MODULE system_basicfunctions
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  I  N  I  T  I  A  L        C  O  N  D  I  T  I  O  N
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    CALL init_fft_size( N_x, N_y, N_z )
+    ! Initializing the size of domain for FFT's in simulation - One time procedure.
+    ! REF-> <<< system_fftw_adv >>>
+
+    ! Getting initial condition for the model
+    CALL IC_vortex_sheet_with_TG(energy_initial)
+
+    CALL compute_vorticity
+
+    w_ux_md = w_ux
+    w_uy_md = w_uy
+    w_uz_md = w_uz
+
+    ! Getting initial condition for the TG self flow
     CALL init_initcondn
     ! Calls the subroutine to get a initial condition
     ! REF-> <<< system_initialcondition >>>
@@ -70,6 +85,8 @@ MODULE system_basicfunctions
       ! FFT spectral to real velocity
 
     END IF
+
+    CALL compute_vorticity
 
   END
 

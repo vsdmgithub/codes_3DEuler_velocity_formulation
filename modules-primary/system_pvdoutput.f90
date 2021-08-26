@@ -181,28 +181,85 @@ MODULE system_pvdoutput
     ! COPYING THE SUBSET DATA
     CALL  VTR_write_var(FD=fd,NAME="Vorticity",VX=vec_x,VY=vec_y,VZ=vec_z )
 
-    vec_x = u_x(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
-    vec_y = u_y(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
-    vec_z = u_z(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! vec_x = u_x(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! vec_y = u_y(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! vec_z = u_z(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! ! COPYING THE SUBSET DATA
+    ! CALL  VTR_write_var(FD=fd,NAME="Velocity",VX=vec_x,VY=vec_y,VZ=vec_z )
+    !
+    ! ! vec_x = hf * w_uy(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1) + str_zx(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! ! vec_y = hf * w_ux(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1) + str_yz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! ! vec_z = str_zz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    !
+    ! scalr = str_xx(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! CALL VTR_write_var(FD=fd, NAME='S_xx', FIELD= scalr)
+    ! scalr = str_yy(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! CALL VTR_write_var(FD=fd, NAME='S_yy', FIELD= scalr)
+    ! scalr = str_zz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! CALL VTR_write_var(FD=fd, NAME='S_zz', FIELD= scalr)
+    ! scalr = str_xy(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! CALL VTR_write_var(FD=fd, NAME='S_xy', FIELD= scalr)
+    ! scalr = str_yz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! CALL VTR_write_var(FD=fd, NAME='S_yz', FIELD= scalr)
+    ! scalr = str_zx(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! CALL VTR_write_var(FD=fd, NAME='S_zx', FIELD= scalr)
+    ! ! COPYING THE SUBSET DATA
+    !
+    CALL  VTR_close_file(FD=fd)
+
+    ! CALL  VTR_collect_file( FD = fd )
+    ! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  END
+
+  SUBROUTINE write_PVD_vorticity_subset_model
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+  ! write the data in PVD format (only a part of the data to save memory )
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    IMPLICIT NONE
+
+
+    file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_3D ) ) &
+                // 'VX_SUB_MD_t'
+
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !   VORTICITY - PVD FORMAT (SUBSET)
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    CALL  VTR_open_file(PREFIX=file_name,FD=fd)
+
+    CALL  VTR_write_mesh(FD=fd,X=pvd_ax_x,Y=pvd_ax_y,Z=pvd_ax_z)
+
+    vec_x = w_ux_md(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    vec_y = w_uy_md(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    vec_z = w_uz_md(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
     ! COPYING THE SUBSET DATA
-    CALL  VTR_write_var(FD=fd,NAME="Velocity",VX=vec_x,VY=vec_y,VZ=vec_z )
+    CALL  VTR_write_var(FD=fd,NAME="Vorticity",VX=vec_x,VY=vec_y,VZ=vec_z )
+
+    ! vec_x = u_x(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! vec_y = u_y(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! vec_z = u_z(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! ! COPYING THE SUBSET DATA
+    ! CALL  VTR_write_var(FD=fd,NAME="Velocity",VX=vec_x,VY=vec_y,VZ=vec_z )
 
     ! vec_x = hf * w_uy(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1) + str_zx(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
     ! vec_y = hf * w_ux(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1) + str_yz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
     ! vec_z = str_zz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
 
-    scalr = str_xx(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
-    CALL VTR_write_var(FD=fd, NAME='S_xx', FIELD= scalr)
-    scalr = str_yy(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
-    CALL VTR_write_var(FD=fd, NAME='S_yy', FIELD= scalr)
-    scalr = str_zz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
-    CALL VTR_write_var(FD=fd, NAME='S_zz', FIELD= scalr)
-    scalr = str_xy(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
-    CALL VTR_write_var(FD=fd, NAME='S_xy', FIELD= scalr)
-    scalr = str_yz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
-    CALL VTR_write_var(FD=fd, NAME='S_yz', FIELD= scalr)
-    scalr = str_zx(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
-    CALL VTR_write_var(FD=fd, NAME='S_zx', FIELD= scalr)
+    ! scalr = str_xx(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! CALL VTR_write_var(FD=fd, NAME='S_xx', FIELD= scalr)
+    ! scalr = str_yy(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! CALL VTR_write_var(FD=fd, NAME='S_yy', FIELD= scalr)
+    ! scalr = str_zz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! CALL VTR_write_var(FD=fd, NAME='S_zz', FIELD= scalr)
+    ! scalr = str_xy(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! CALL VTR_write_var(FD=fd, NAME='S_xy', FIELD= scalr)
+    ! scalr = str_yz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! CALL VTR_write_var(FD=fd, NAME='S_yz', FIELD= scalr)
+    ! scalr = str_zx(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! CALL VTR_write_var(FD=fd, NAME='S_zx', FIELD= scalr)
     ! COPYING THE SUBSET DATA
 
     CALL  VTR_close_file(FD=fd)

@@ -104,6 +104,40 @@ MODULE system_advoutput
 
   END
 
+  SUBROUTINE write_vx_section_model()
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! This writes a real space data given for a particular section
+  ! into a .dat file named d_nam
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    IMPLICIT NONE
+
+    WRITE (file_time,f_d8p4) time_now
+    ! Writes 'time_now' as a CHARACTER
+
+    file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_2D ) ) &
+                // 'VX_sec_model_t_'//TRIM( ADJUSTL( file_time ) ) // '.dat'
+
+    OPEN( UNIT = 459, FILE = file_name)
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  P  R  I  N   T          O  U  T  P  U  T   -   DATA FILE-section
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+       i_z = 0
+    DO i_x = 0, N_x - 1
+    DO i_y = 0, N_y - 1
+      WRITE(459,f_d32p17,ADVANCE='no')  w_ux_md( i_x, i_y, i_z )
+      WRITE(459,f_d32p17,ADVANCE='no')  w_uy_md( i_x, i_y, i_z )
+      WRITE(459,f_d32p17,ADVANCE='yes') w_uz_md( i_x, i_y, i_z )
+    END DO
+    END DO
+
+    CLOSE(459)
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  END
+
   SUBROUTINE write_strain_section()
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------

@@ -95,7 +95,7 @@ MODULE system_basicvariables
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
   INTEGER(KIND=4)  ::state_sim,check_status,debug_error
   INTEGER(KIND=4)  ::NaN_count,k_dot_v_error
-  INTEGER(KIND=4)  ::no_of_debug,t_step_debug
+  INTEGER(KIND=4)  ::no_of_debug,t_step_debug, blockSystemID
   ! _________________________________________
   ! REAL SPACE ARRAYS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -104,6 +104,9 @@ MODULE system_basicvariables
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::u_x,u_y,u_z
   ! Real velocity matrix  (updated after every time step)
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::w_ux,w_uy,w_uz
+  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::dw_ux,dw_uy,dw_uz
+  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::w_uy_VX,w_uz_VX,w_uz_VX_der
+  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::w_ux_md,w_uy_md,w_uz_md
   ! Real vorticity
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::proj_xx,proj_yy,proj_zz
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::proj_xy,proj_yz,proj_zx
@@ -518,6 +521,15 @@ MODULE system_basicvariables
     ALLOCATE( w_ux( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
     ALLOCATE( w_uy( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
     ALLOCATE( w_uz( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+    ALLOCATE( dw_ux( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+    ALLOCATE( dw_uy( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+    ALLOCATE( dw_uz( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+    ALLOCATE( w_ux_md( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+    ALLOCATE( w_uy_md( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+    ALLOCATE( w_uz_md( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+    ALLOCATE( u_y_VX( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+    ALLOCATE( w_uz_VX( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+    ALLOCATE( w_uz_VX_der( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
     ALLOCATE( w_vx( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
     ALLOCATE( w_vy( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
     ALLOCATE( w_vz( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
@@ -555,6 +567,9 @@ MODULE system_basicvariables
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		DEALLOCATE( w_ux, w_uy, w_uz )
 		DEALLOCATE( w_vx, w_vy, w_vz )
+		DEALLOCATE( dw_vx, dw_vy, dw_vz )
+		DEALLOCATE( w_vx_md, w_vy_md, w_vz_md )
+		DEALLOCATE( u_y_VX,w_uz_VX, w_uz_VX_der )
 
 	END
 

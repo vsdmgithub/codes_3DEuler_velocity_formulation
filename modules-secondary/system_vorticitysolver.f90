@@ -125,6 +125,13 @@ MODULE system_vorticitysolver
 
 		IMPLICIT NONE
 		! First store the spectral velocity into a temporary matrix, as steps of RK4 algorithm will manipulate 'v(k)'
+
+	  CALL compute_vorticity
+
+		dw_ux = w_ux
+		dw_uy = w_uy
+		dw_uz = w_uz
+
 		v_x_temp = v_x
 		v_y_temp = v_y
 		v_z_temp = v_z
@@ -145,6 +152,12 @@ MODULE system_vorticitysolver
 		v_x      = v_x_temp + ( dv1_x + two * dv2_x + two * dv3_x + dv4_x ) / six
 		v_y      = v_y_temp + ( dv1_y + two * dv2_y + two * dv3_y + dv4_y ) / six
 		v_z      = v_z_temp + ( dv1_z + two * dv2_z + two * dv3_z + dv4_z ) / six
+
+	  CALL compute_vorticity
+
+		dw_ux = w_ux - dw_ux  
+		dw_uy = w_uy - dw_uy
+		dw_uz = w_uz - dw_uz
 
 	END
 

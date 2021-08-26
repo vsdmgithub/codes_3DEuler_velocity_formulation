@@ -122,6 +122,7 @@ MODULE system_main
       ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 
       CALL allocate_solver
+      CALL allocate_interactionsolver
       ! Allocates arrays for solver
 
       IF ( run_code .EQ. 'y' ) THEN
@@ -134,7 +135,7 @@ MODULE system_main
         ! Allocates arrays for PVD output for subset of data
         ! REF-> <<< system_pvdoutput >>>
 
-        CALL allocate_strain_tensor
+        ! CALL allocate_strain_tensor
         ! REF-> <<< system_advvariables >>>
 
         ! CALL allocate_tr_wave_filter
@@ -168,6 +169,28 @@ MODULE system_main
     ! _________________________________________________________________
     DO t_step = 0, t_step_total
 
+      !  ---------------------------------------------------------------
+      !  M  O  D  E  L        S  I  M  U  L  A  T  I  O  N
+      !  ---------------------------------------------------------------
+      blockSystemID = 1
+      ! Indicates that the model simulation is running
+
+      !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      !  P  S  E  U  D  O  -  S  P  E  C  T  R  A  L     A  L  G
+      !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      IF ( ( solver_type .EQ. 'vo' ) .AND. ( solver_alg .EQ. 'rk') )  THEN
+
+        CALL interaction_solver
+        ! REF-> <<< system_interaction_solver >>>
+
+      END IF
+
+    !  ---------------------------------------------------------------
+    ! L  A  R  G  E       E  D  D  Y      S  I  M  U  L  A  T  I  O  N
+    !  ---------------------------------------------------------------
+    blockSystemID = 0
+    ! Indicates that large eddy simulation is running
+
       CALL inter_analysis
       ! Does all analysis in between time steps. Including saving data
 
@@ -183,34 +206,14 @@ MODULE system_main
 
         CALL vorticitysolver_RK4_algorithm
         ! REF-> <<< system_vorticitysolver >>>
-        GOTO 10101
 
       END IF
-      IF ( ( solver_type .EQ. 'ad' ) .AND. ( solver_alg .EQ. 'ab') )  THEN
 
-          CALL advectionsolver_AB4_algorithm
-          ! REF-> <<< system_advectionsolver >>>
-          GOTO 10101
+      CALL merger_TG_VX_interaction
+      ! Adds the interaction contribution and TG self contribution in dynamics
 
-      END IF
-      IF ( ( solver_type .EQ. 'ad' ) .AND. ( solver_alg .EQ. 'rk') )  THEN
-
-          CALL advectionsolver_RK4_algorithm
-          ! REF-> <<< system_advectionsolver >>>
-          GOTO 10101
-
-      END IF
-      IF ( ( solver_type .EQ. 'vo' ) .AND. ( solver_alg .EQ. 'ab') )  THEN
-
-          CALL vorticitysolver_AB4_algorithm
-          ! REF-> <<< system_vorticitysolver >>>
-          GOTO 10101
-
-      END IF
-      ! Updates v_x,v_y,v_z for next time step
-
-    10101 CONTINUE
-    ! Jumps straight out of loop to here.
+      CALL inter_analysis_model
+      ! Does all analysis in between time steps. Including saving data
 
     END DO
     ! _________________________________________________________________
@@ -245,7 +248,7 @@ MODULE system_main
     CALL compute_spectral_data
     ! REF-> <<< system_basicfunctions >>>
 
-    CALL compute_strain_tensor
+    ! CALL compute_strain_tensor
     ! REF-> <<< system_advfunctions >>>
 
     ! CALL write_vx_dot_section
@@ -254,7 +257,7 @@ MODULE system_main
     CALL write_vx_section
     ! REF-> <<< system_advoutput >>>
 
-    CALL write_strain_section
+    ! CALL write_strain_section
     ! REF-> <<< system_advoutput >>>
 
     ! CALL compute_energy_filter
@@ -268,12 +271,11 @@ MODULE system_main
       CALL write_temporal_data
       ! REF-> <<< system_basicoutput >>>
 
-
     END IF
 
     IF (MOD(t_step,t_step_PVD_save) .EQ. 0) THEN
 
-      CALL compute_vorticity
+      ! CALL compute_vorticity
       ! REF-> <<< system_basicfunctions >>>
 
       ! CALL write_PVD_velocity
@@ -282,7 +284,7 @@ MODULE system_main
       ! CALL write_PVD_vorticity
       ! REF-> <<< system_pvdoutput >>>
 
-      CALL write_PVD_vorticity_subset
+      ! CALL write_PVD_vorticity_subset
       ! REF-> <<< system_pvdoutput >>>
 
     END IF
@@ -297,6 +299,26 @@ MODULE system_main
 
       CALL print_running_status
       ! REF-> <<< system_basicoutput >>>
+
+    END IF
+
+  END
+
+  SUBROUTINE inter_analysis_model
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! This does all the inter_analysis, making calls to write output during the evolution, debug and statistics part.
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    IMPLICIT NONE
+
+    CALL write_vx_section_model
+    ! REF-> <<< system_advoutput >>>
+
+    IF (MOD(t_step,t_step_PVD_save) .EQ. 0) THEN
+
+      CALL write_PVD_vorticity_subset_model
+      ! REF-> <<< system_pvdoutput >>>
 
     END IF
 
@@ -319,7 +341,7 @@ MODULE system_main
     ! CALL write_velocity
     ! REF-> <<< system_basicoutput >>>
 
-    CALL deallocate_strain_tensor
+    ! CALL deallocate_strain_tensor
     ! REF-> <<< system_advvariables >>>
 
     ! CALL deallocate_tr_wave_filter
@@ -329,6 +351,7 @@ MODULE system_main
     ! REF-> <<< system_pvdoutput >>>
 
     CALL deallocate_solver
+    CALL deallocate_interactionsolver
 
     CALL deallocate_velocity
     ! REF-> <<< system_basicvariables >>>
