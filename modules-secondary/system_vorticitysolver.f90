@@ -126,7 +126,7 @@ MODULE system_vorticitysolver
 		IMPLICIT NONE
 		! First store the spectral velocity into a temporary matrix, as steps of RK4 algorithm will manipulate 'v(k)'
 
-	  CALL compute_vorticity
+	  CALL compute_vorticity_dup
 
 		dw_ux = w_ux
 		dw_uy = w_uy
@@ -153,9 +153,9 @@ MODULE system_vorticitysolver
 		v_y      = v_y_temp + ( dv1_y + two * dv2_y + two * dv3_y + dv4_y ) / six
 		v_z      = v_z_temp + ( dv1_z + two * dv2_z + two * dv3_z + dv4_z ) / six
 
-	  CALL compute_vorticity
+	  CALL compute_vorticity_dup
 
-		dw_ux = w_ux - dw_ux  
+		dw_ux = w_ux - dw_ux
 		dw_uy = w_uy - dw_uy
 		dw_uz = w_uz - dw_uz
 
@@ -519,5 +519,24 @@ MODULE system_vorticitysolver
 		DEALLOCATE( uXw_x, uXw_y, uXw_z )
 
 	END
+
+  SUBROUTINE compute_vorticity_dup
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL this to get vorticity field
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+
+    w_vx = i * ( k_y * v_z - k_z * v_y )
+    w_vy = i * ( k_z * v_x - k_x * v_z )
+    w_vz = i * ( k_x * v_y - k_y * v_x )
+    ! Spectral Vorticity
+
+    CALL fft_c2r_vec( w_vx, w_vy, w_vz, w_ux, w_uy, w_uz )
+    ! Real Vorticity
+
+  END
 
  END MODULE system_vorticitysolver

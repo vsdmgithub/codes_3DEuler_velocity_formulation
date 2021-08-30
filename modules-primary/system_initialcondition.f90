@@ -583,20 +583,22 @@ MODULE system_initialcondition
     INTEGER(KIND=4) ::i_x1,i_x3
     DOUBLE PRECISION::energy_sheet,energy_ratio,energy_TG
     DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::u_sheet_y
+    DOUBLE COMPLEX,DIMENSION(:,:,:),ALLOCATABLE   ::v_y_VX
 
     ALLOCATE( u_sheet_y( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+    ALLOCATE( v_y_VX( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
 
     u0           = one
     ! Normalizing parameter
 
-    smooth_pm    = 0.8D0
+    smooth_pm    = 0.22D0
     ! How thick the sheet is, smaller the parameter thicker it is, has to be less than 1
 
     c_factor = smooth_pm * two_pi / thr
     ! TO KEEP UP THE NOMENCLATURE FOR THIS STUDY.
     ! With this factor => c_factor * i_x = smooth_pm * k_G * x = k_0 * x
 
-    energy_ratio =10
+    energy_ratio = 0.1
     ! Ratio of energy between sheet and TG flow.
 
     ! i_x0 =     INT( N_x /  8)
@@ -651,6 +653,7 @@ MODULE system_initialcondition
     ! Getting spectral velocity
 
     DEALLOCATE(u_sheet_y)
+    DEALLOCATE(v_y_VX)
 
   END
 

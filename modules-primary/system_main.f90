@@ -60,6 +60,7 @@ MODULE system_main
   USE system_pvdoutput
   USE system_advectionsolver
   USE system_vorticitysolver
+  USE system_interactionsolver
   IMPLICIT NONE
   ! _________________________
   ! LOCAL VARIABLES
@@ -254,7 +255,7 @@ MODULE system_main
     ! CALL write_vx_dot_section
     ! REF-> <<< system_advoutput >>>
 
-    CALL write_vx_section
+    ! CALL write_vx_section
     ! REF-> <<< system_advoutput >>>
 
     ! CALL write_strain_section
@@ -275,7 +276,7 @@ MODULE system_main
 
     IF (MOD(t_step,t_step_PVD_save) .EQ. 0) THEN
 
-      ! CALL compute_vorticity
+      CALL compute_vorticity
       ! REF-> <<< system_basicfunctions >>>
 
       ! CALL write_PVD_velocity
@@ -284,7 +285,7 @@ MODULE system_main
       ! CALL write_PVD_vorticity
       ! REF-> <<< system_pvdoutput >>>
 
-      ! CALL write_PVD_vorticity_subset
+      CALL write_PVD_vorticity_subset
       ! REF-> <<< system_pvdoutput >>>
 
     END IF

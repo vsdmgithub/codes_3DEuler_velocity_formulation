@@ -105,7 +105,7 @@ MODULE system_basicvariables
   ! Real velocity matrix  (updated after every time step)
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::w_ux,w_uy,w_uz
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::dw_ux,dw_uy,dw_uz
-  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::w_uy_VX,w_uz_VX,w_uz_VX_der
+  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::u_y_VX,w_uz_VX,w_uz_VX_der
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::w_ux_md,w_uy_md,w_uz_md
   ! Real vorticity
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::proj_xx,proj_yy,proj_zz
@@ -268,7 +268,7 @@ MODULE system_basicvariables
     norm_factor     = one
     ! Normalization factor for energy - later changed so that initial energy is obtained.
 
-    energy_initial  = one
+    energy_initial  = 0.1D0 
     ! Initial energy of the system
 
     v_rms_1D        = DSQRT( two * energy_initial / thr )
@@ -277,7 +277,7 @@ MODULE system_basicvariables
     time_grid       = dx / v_rms_1D
     ! Time scale for particle to cross a grid
 
-    CFL_min         = 8
+    CFL_min         = 20
     ! - Courant-Friedrichs-Lewy (CFL) condition - CFL no is inverse of the above ratio
     ! No of steps (minimum) that should take to cross a grid
 
@@ -567,8 +567,8 @@ MODULE system_basicvariables
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		DEALLOCATE( w_ux, w_uy, w_uz )
 		DEALLOCATE( w_vx, w_vy, w_vz )
-		DEALLOCATE( dw_vx, dw_vy, dw_vz )
-		DEALLOCATE( w_vx_md, w_vy_md, w_vz_md )
+		DEALLOCATE( dw_ux, dw_uy, dw_uz )
+		DEALLOCATE( w_ux_md, w_uy_md, w_uz_md )
 		DEALLOCATE( u_y_VX,w_uz_VX, w_uz_VX_der )
 
 	END

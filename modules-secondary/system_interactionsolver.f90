@@ -39,31 +39,8 @@ MODULE system_interactionsolver
 	! _________________________________________
   ! REAL SPACE ARRAYS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::uXw_x,uXw_y,uXw_z
+	DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE:: grad_1, grad_2
 	! Real cross product between velocity and vorticity
-
-	! _________________________________________
-  ! FOURIER SPACE ARRAYS
-  ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  DOUBLE COMPLEX,DIMENSION(:,:,:),ALLOCATABLE::vXw_x, vXw_y, vXw_z
-  ! Spectral cross product between velocity and vorticity
-
-	DOUBLE COMPLEX,DIMENSION(:,:,:),ALLOCATABLE::v_x_dot_m1,v_y_dot_m1,v_z_dot_m1
-	DOUBLE COMPLEX,DIMENSION(:,:,:),ALLOCATABLE::v_x_dot_m2,v_y_dot_m2,v_z_dot_m2
-	DOUBLE COMPLEX,DIMENSION(:,:,:),ALLOCATABLE::v_x_dot_m3,v_y_dot_m3,v_z_dot_m3
-	DOUBLE COMPLEX,DIMENSION(:,:,:),ALLOCATABLE::v_x_dot,v_y_dot,v_z_dot
-	! Spectral derivatives for AB4
-
-	DOUBLE COMPLEX,DIMENSION(:,:,:),ALLOCATABLE::v_x_pred,v_y_pred,v_z_pred
-  ! Spectral velocity predictor for AB4 matrix
-
-	DOUBLE COMPLEX,DIMENSION(:,:,:),ALLOCATABLE::dv1_x,dv2_x,dv3_x,dv4_x,dv1_y,dv2_y
-  DOUBLE COMPLEX,DIMENSION(:,:,:),ALLOCATABLE::dv3_y,dv4_y,dv1_z,dv2_z,dv3_z,dv4_z
-  ! Intermediate matrices for RK4 algorithm
-
-	DOUBLE COMPLEX,DIMENSION(:,:,:),ALLOCATABLE::v_x_temp,v_y_temp,v_z_temp
-  ! temporary matrices to store velocities during RK4 algorithm
-
 
 	CONTAINS
 
@@ -99,7 +76,7 @@ MODULE system_interactionsolver
 
 	END
 
-	SUBROUTINE interactionsolver
+	SUBROUTINE interaction_solver
 	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	! ------------
 	! INTERACTION TERM

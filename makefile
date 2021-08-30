@@ -4,10 +4,12 @@
 cc=gfortran
 
 # LIBRARY LOCATION
-lb_lc= -I/home/sugan/fftw/include
+# lb_lc= -I/home/sugan/fftw/include
+lb_lc= -I/home/coco/fftw/include
 
 # LIBRARY FILE
-lb_fftw=-L/home/sugan/fftw/lib -lfftw3 -lm
+# lb_fftw=-L/home/sugan/fftw/lib -lfftw3 -lm
+lb_fftw=-L/home/coco/fftw/lib -lfftw3 -lm
 
 # PROGRAM
 program=euler_code.f90
