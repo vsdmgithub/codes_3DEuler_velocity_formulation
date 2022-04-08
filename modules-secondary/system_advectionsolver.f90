@@ -49,6 +49,7 @@ MODULE system_advectionsolver
   ! FOURIER SPACE ARRAYS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	DOUBLE COMPLEX,DIMENSION(:,:,:),ALLOCATABLE::adv_v_x,adv_v_y,adv_v_z
+	DOUBLE COMPLEX,DIMENSION(:,:,:),ALLOCATABLE::adv_v_x_temp,adv_v_y_temp,adv_v_z_temp
 	! Spectral advection term matrix
 
 	DOUBLE COMPLEX,DIMENSION(:,:,:),ALLOCATABLE::v_x_dot_m1,v_y_dot_m1,v_z_dot_m1
@@ -83,6 +84,7 @@ MODULE system_advectionsolver
 		ALLOCATE(adv_u_x(0:N-1,0:N-1,0:N-1),adv_u_y(0:N-1,0:N-1,0:N-1),adv_u_z(0:N-1,0:N-1,0:N-1))
 		ALLOCATE(grad_x(0:N-1,0:N-1,0:N-1),grad_y(0:N-1,0:N-1,0:N-1),grad_z(0:N-1,0:N-1,0:N-1))
 		ALLOCATE(adv_v_x(0:Nh,-Nh:Nh-1,-Nh:Nh-1),adv_v_y(0:Nh,-Nh:Nh-1,-Nh:Nh-1),adv_v_z(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
+		ALLOCATE(adv_v_x_temp(0:Nh,-Nh:Nh-1,-Nh:Nh-1),adv_v_y_temp(0:Nh,-Nh:Nh-1,-Nh:Nh-1),adv_v_z_temp(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
 
 	END
 
@@ -342,7 +344,7 @@ MODULE system_advectionsolver
 	! -------------
 	! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 		IMPLICIT NONE
-		CALL advection
+		CALL advection_thermal_suppressed
 		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 		!   3   D  -   E   U   L   E   R           E   Q   N.
 		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -361,7 +363,8 @@ MODULE system_advectionsolver
 	! -------------
 	! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 		IMPLICIT NONE
-		CALL advection
+		! CALL advection
+		CALL advection_thermal_suppressed
 		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 		!   3   D  -   E   U   L   E   R           E   Q   N.
 		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -380,7 +383,8 @@ MODULE system_advectionsolver
 	! -------------
 	! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 		IMPLICIT NONE
-		CALL advection
+		! CALL advection
+		CALL advection_thermal_suppressed
 		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 		!   3   D  -   E   U   L   E   R           E   Q   N.
 		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -399,7 +403,8 @@ MODULE system_advectionsolver
 	! -------------
 	! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 		IMPLICIT NONE
-		CALL advection
+		! CALL advection
+		CALL advection_thermal_suppressed
 		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 		!   3   D  -   E   U   L   E   R           E   Q   N.
 		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -446,6 +451,49 @@ MODULE system_advectionsolver
 
 		! Calculate the advection term in spectral space by doing iFFT
 		CALL fft_r2c( adv_u_x, adv_u_y, adv_u_z, N, Nh, adv_v_x, adv_v_y, adv_v_z )
+
+  END
+
+	SUBROUTINE advection_thermal_suppressed
+	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	! ------------
+	! CALL this to give spectral advection term using v_k.
+	! 1. First v 			--> u  FFT is done
+	! 2. Next i*k*v 	--> du/dx  FFT is done
+	! 3. Next u.du/dx --> Fourier(u.du/dx)
+	! All these for k<kP, for k>kP use only contribution from u< .grad u<
+	! -------------
+	! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		IMPLICIT NONE
+
+		CALL advection
+
+		! IF ( k_th < k_G - 1 ) THEN
+!
+			! adv_v_x_temp = adv_v_x
+			! adv_v_y_temp = adv_v_y
+			! adv_v_z_temp = adv_v_z
+			!
+			! CALL thermal_suppression_filter
+			! ! Now v_x,v_y,v_z has modes between kP and kG deleted.
+			!
+	    ! DO i_x = 0, Nh
+	    ! DO i_y = -Nh, Nh - 1
+	    ! DO i_z = -Nh, Nh - 1
+			!
+			! 	IF ((k_2(i_x,i_y,i_z)) .LT. k_th_2) THEN
+			!
+			! 		adv_v_x( i_x, i_y, i_z ) = adv_v_x_temp(i_x, i_y, i_z)
+			! 		adv_v_y( i_x, i_y, i_z ) = adv_v_y_temp(i_x, i_y, i_z)
+			! 		adv_v_z( i_x, i_y, i_z ) = adv_v_z_temp(i_x, i_y, i_z)
+			!
+			! 	END IF
+			!
+			! END DO
+			! END DO
+			! END DO
+!
+		! END IF
 
   END
 
@@ -500,6 +548,7 @@ MODULE system_advectionsolver
 		!  D  E  A  L  L  O  C  A  T  I  O  N
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		DEALLOCATE(adv_v_x,adv_v_y,adv_v_z)
+		DEALLOCATE(adv_v_x_temp,adv_v_y_temp,adv_v_z_temp)
 		DEALLOCATE(adv_u_x,adv_u_y,adv_u_z)
 		DEALLOCATE(grad_x,grad_y,grad_z)
 

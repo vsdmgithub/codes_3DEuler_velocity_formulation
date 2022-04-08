@@ -42,7 +42,9 @@ MODULE system_basicvariables
   DOUBLE PRECISION ::length,dx,dy,dz
   DOUBLE PRECISION ::N3,vol,dxdydz
   DOUBLE PRECISION ::k_G_2
+  DOUBLE PRECISION ::k_th_2
   INTEGER(KIND=4)  ::N,Nh,k_G
+  INTEGER(KIND=4)  ::k_th
   INTEGER(KIND=4)  ::i_x,i_y,i_z
   INTEGER(KIND=4)  ::j_x,j_y,j_z
   INTEGER(KIND=4)  ::k_no,max_shell_no
@@ -251,7 +253,7 @@ MODULE system_basicvariables
     ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     ! A U X I L A R Y
     ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    no_of_debug             = 2
+    no_of_debug             = 5
     ! No of times that the program looks for any 'NaN' while marching forward in time.
 
     t_step_debug            = t_step_total / no_of_debug

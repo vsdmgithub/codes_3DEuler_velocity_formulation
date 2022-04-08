@@ -111,7 +111,7 @@ MODULE system_main
       ! ----------------------------------------------------------------
       !      'ad'- ADVECTION TYPE SOLVER
       !      'vo'- VORTICITY TYPE SOLVER
-              solver_type = 'vo'
+              solver_type = 'ad'
       ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
       !      S  O  L  V  E  R     A  L  G  O  R  I  T  H  M
       ! ----------------------------------------------------------------
@@ -241,7 +241,11 @@ MODULE system_main
     CALL write_test_data
     ! REF-> <<< system_basicoutput >>>
 
-    IF (MOD(t_step,t_step_save) .EQ. 0) THEN
+    CALL find_k_thermal
+    ! REF-> <<< system_advfunctions >>>
+		  print*,t_step,k_th
+
+    ! IF (MOD(t_step,t_step_save) .EQ. 0) THEN
 
       CALL write_spectral_data
       ! REF-> <<< system_basicoutput >>>
@@ -249,9 +253,9 @@ MODULE system_main
       CALL write_temporal_data
       ! REF-> <<< system_basicoutput >>>
 
-    END IF
+    ! END IF
 
-    IF (MOD(t_step,t_step_PVD_save) .EQ. 0) THEN
+    ! IF (MOD(t_step,t_step_PVD_save) .EQ. 0) THEN
 
       ! CALL write_PVD_velocity
       ! REF-> <<< system_pvdoutput >>>
@@ -265,7 +269,7 @@ MODULE system_main
       ! CALL write_PVD_vorticity_subset
       ! REF-> <<< system_pvdoutput >>>
 
-    END IF
+    ! END IF
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  D  E  B  U  G             F  O  R          N  a   N
