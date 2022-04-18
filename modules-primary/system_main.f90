@@ -136,6 +136,12 @@ MODULE system_main
         ! Allocates arrays for PVD output for subset of data
         ! REF-> <<< system_pvdoutput >>>
 
+        CALL allocate_thermal_filters
+        ! REF-> <<< system_advvariables >>>
+
+        CALL write_adv_simulation_details
+        ! REF-> <<< system_advoutput >>>
+
       END IF
 
     END IF
@@ -241,9 +247,8 @@ MODULE system_main
     CALL write_test_data
     ! REF-> <<< system_basicoutput >>>
 
-    CALL find_k_thermal
+    CALL find_k_thermalising
     ! REF-> <<< system_advfunctions >>>
-		  print*,t_step,k_th
 
     ! IF (MOD(t_step,t_step_save) .EQ. 0) THEN
 
@@ -254,6 +259,19 @@ MODULE system_main
       ! REF-> <<< system_basicoutput >>>
 
     ! END IF
+
+    IF (MOD(t_step,t_step_supp) .EQ. 0) THEN
+
+      CALL thermal_cutoff_filter
+      ! REF-> <<< system_advfunctions >>>
+
+      CALL find_spectral_thermalising_coefficient
+      ! REF-> <<< system_advfunctions >>>
+
+      CALL thermal_suppression_filter
+      ! REF-> <<< system_advfunctions >>>
+
+    END IF
 
     ! IF (MOD(t_step,t_step_PVD_save) .EQ. 0) THEN
 
