@@ -96,4 +96,64 @@ MODULE system_advoutput
 
   END
 
+  SUBROUTINE write_k_th_data
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+  ! write the data in time, for every timestep
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    IMPLICIT NONE
+
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !   K _ T H     V S    T I M E
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    IF ( t_step .EQ. 0 ) THEN
+      file_name = TRIM( ADJUSTL( file_address ) ) // 'k_th.dat'
+      !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      OPEN(unit = 4304, file = file_name )
+      ! File where energy vs time will be written. With additional data
+    END IF
+
+    WRITE(4304,f_d8p4,ADVANCE   ='no')  time_now
+    WRITE(4304,f_i6,ADVANCE ='yes') k_th
+
+    IF ( t_step .EQ. t_step_total ) THEN
+      CLOSE(4304)
+    END IF
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  END
+
+  SUBROUTINE write_thermalising_coefficient
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+  ! Write the spectral thermalising coefficient
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+
+    WRITE (file_time,f_d8p4) time_now
+    ! Writes 'time_now' as a CHARACTER
+
+    file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_sp ) ) &
+                // 'spectral_coeff_t_'//TRIM( ADJUSTL( file_time ) ) // '.dat'
+
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  E  N  E  R  G  Y      S  P  E  C  T  R  U  M
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    OPEN( UNIT = 1201, FILE = file_name )
+    DO k_no = k_iner_ref , k_G
+
+      WRITE(1201,f_i8,ADVANCE  ='no')       k_no
+      WRITE(1201,f_d32p17,ADVANCE ='yes')   th_supp_factor( k_no )
+
+    END DO
+    CLOSE(1201)
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  END
+  
 END MODULE system_advoutput

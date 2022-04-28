@@ -65,10 +65,11 @@ MODULE system_advvariables
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ALLOCATE( th_supp_factor(0:max_shell_no) )
 
-    k_iner_ref     = FLOOR( DBLE( N ) / fiv )
+    ! k_iner_ref     = FLOOR( DBLE( N ) / fiv )
+    k_iner_ref     = 12
     ! Reference for inertial range wavenumber
 
-    th_coeff_threshold = 1.1D0
+    th_coeff_threshold = 0.02D0
     ! ratio of spectral energy to reference energy with fluctuations included
 
     k_th           = k_G - 1

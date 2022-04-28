@@ -46,6 +46,7 @@ MODULE system_advfunctions
 
     IMPLICIT NONE
     INTEGER(KIND=4)::k_ind
+    DOUBLE PRECISION::en0,en1,en2
 
     en_min = spectral_energy_avg( k_th )
     k_min  = k_th
@@ -63,6 +64,25 @@ MODULE system_advfunctions
 
     k_th = k_min
 
+    DO k_ind = k_iner_ref, k_th - 2
+
+      en0  = spectral_energy_avg( k_ind + 0 )
+      en1 = spectral_energy_avg( k_ind + 1 )
+      en2 = spectral_energy_avg( k_ind + 2 )
+
+      IF ( ( en0 .LE. en1 ) .AND. ( en1 .LE. en2 ) ) THEN
+
+        k_th = k_ind
+
+        EXIT
+
+      END IF
+
+    END DO
+
+    CALL write_k_th_data
+    ! REF-> <<< system_advoutput >>>
+
   END
 
   SUBROUTINE find_spectral_thermalising_coefficient
@@ -79,7 +99,7 @@ MODULE system_advfunctions
 
     DO k_ind = k_iner_ref + 1 , k_th
 
-      en_ref   = spectral_energy_avg( k_iner_ref ) * ( DBLE( k_ind / k_iner_ref ) ** ( -fivthird ) )
+      en_ref   = spectral_energy_avg( k_iner_ref ) * ( ( DBLE( k_ind ) / DBLE( k_iner_ref ) ) ** ( -fivthird ) )
 
       IF ( spectral_energy_avg( k_ind ) .GT. tol ) THEN
 
@@ -94,6 +114,9 @@ MODULE system_advfunctions
       END IF
 
     END DO
+
+    CALL write_thermalising_coefficient
+    ! REF-> <<< system_advoutput >>>
 
   END
 

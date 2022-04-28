@@ -244,7 +244,7 @@ MODULE system_main
     CALL compute_spectral_data
     ! REF-> <<< system_basicfunctions >>>
 
-    CALL write_test_data
+    ! CALL write_test_data
     ! REF-> <<< system_basicoutput >>>
 
     CALL find_k_thermalising
