@@ -1,0 +1,24 @@
+N
+128
+dt
+0.02
+T
+8.0
+Saves
+40
+Purging status
+0
+purging alpha
+0.88
+purging beta 
+0.6
+Viscosity status
+0
+Viscosity
+0.000
+Vortex calc status
+1
+pvd_status
+0
+no_of_pvd_saves
+1
