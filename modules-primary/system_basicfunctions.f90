@@ -58,10 +58,14 @@ MODULE system_basicfunctions
     ! REF-> <<< system_initialcondition >>>
 
     CALL perform_debug
+    ! Checks for any compressibility and NaN in data
 
     IF ( ( NaN_count .EQ. 0 ) .AND. ( k_dot_v_error .EQ. 0) ) THEN
 
       check_status = 1
+
+      CALL compute_vorticity
+      ! Calculates the vorticity (for the first time)
 
       CALL compute_spectral_data
       ! Gets the energy,enstrophy from spectral space
@@ -82,15 +86,21 @@ MODULE system_basicfunctions
   ! them too.
   ! -------------
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  ! _________________________
+  ! LOCAL VARIABLES
+  ! !!!!!!!!!!!!!!!!!!!!!!!!!
 
     IMPLICIT NONE
+    INTEGER(KIND=4)::sh_no
 
     spectral_energy     = zero
-    spectral_energy_avg = zero
+    spectral_enstrophy  = zero
+    spectral_helicity   = zero
     ! Reset the array
 
     energy              = zero
     enstrophy           = zero
+    helicity            = zero
     ! Reset the variables
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -102,11 +112,20 @@ MODULE system_basicfunctions
     DO i_y = - k_G, k_G
     DO i_z = - k_G, k_G
     IF ( k_2 ( i_x, i_y, i_z ) .LT. k_G_2 ) THEN
-      energy_mode                                   = CDABS( v_x( i_x, i_y, i_z ) ) ** two + &
-                                                      CDABS( v_y( i_x, i_y, i_z ) ) ** two + &
-                                                      CDABS( v_z( i_x, i_y, i_z ) ) ** two
-      spectral_energy( shell_no ( i_x, i_y, i_z ) ) = spectral_energy( shell_no ( i_x, i_y, i_z ) ) + energy_mode
-      enstrophy                                     = enstrophy + k_2( i_x, i_y, i_z) * energy_mode
+      sh_no = shell_no( i_x, i_y, i_z )
+      energy_mode                 = CDABS( v_x( i_x, i_y, i_z ) ) ** two + &
+                                    CDABS( v_y( i_x, i_y, i_z ) ) ** two + &
+                                    CDABS( v_z( i_x, i_y, i_z ) ) ** two
+      enstrophy_mode              = CDABS( w_vx( i_x, i_y, i_z ) ) ** two + &
+                                    CDABS( w_vy( i_x, i_y, i_z ) ) ** two + &
+                                    CDABS( w_vz( i_x, i_y, i_z ) ) ** two
+      helicity_mode_complex       = v_x( i_x, i_y, i_z ) * DCONJG( w_vx( i_x, i_y, i_z ) ) + &
+                                    v_y( i_x, i_y, i_z ) * DCONJG( w_vy( i_x, i_y, i_z ) ) + &
+                                    v_z( i_x, i_y, i_z ) * DCONJG( w_vz( i_x, i_y, i_z ) )
+      helicity_mode               = DREAL( helicity_mode_complex )
+      spectral_energy( sh_no )    = spectral_energy( sh_no )      + energy_mode
+      spectral_enstrophy( sh_no ) = spectral_enstrophy( sh_no )   + enstrophy_mode
+      spectral_helicity( sh_no )  = spectral_helicity( sh_no )    + helicity_mode
     END IF
     END DO
     END DO
@@ -116,42 +135,88 @@ MODULE system_basicfunctions
     DO i_y = - k_G, k_G
     DO i_z = - k_G, -1
     IF ( k_2 ( i_x, i_y, i_z ) .LT. k_G_2 ) THEN
-      energy_mode                                   = CDABS( v_x( i_x, i_y, i_z ) ) ** two + &
-                                                      CDABS( v_y( i_x, i_y, i_z ) ) ** two + &
-                                                      CDABS( v_z( i_x, i_y, i_z ) ) ** two
-      spectral_energy( shell_no ( i_x, i_y, i_z ) ) = spectral_energy( shell_no ( i_x, i_y, i_z ) ) + energy_mode
-      enstrophy                                     = enstrophy + k_2( i_x, i_y, i_z) * energy_mode
+      sh_no = shell_no( i_x, i_y, i_z )
+      energy_mode                 = CDABS( v_x( i_x, i_y, i_z ) ) ** two + &
+                                    CDABS( v_y( i_x, i_y, i_z ) ) ** two + &
+                                    CDABS( v_z( i_x, i_y, i_z ) ) ** two
+      enstrophy_mode              = CDABS( w_vx( i_x, i_y, i_z ) ) ** two + &
+                                    CDABS( w_vy( i_x, i_y, i_z ) ) ** two + &
+                                    CDABS( w_vz( i_x, i_y, i_z ) ) ** two
+      helicity_mode_complex       = v_x( i_x, i_y, i_z ) * DCONJG( w_vx( i_x, i_y, i_z ) ) + &
+                                    v_y( i_x, i_y, i_z ) * DCONJG( w_vy( i_x, i_y, i_z ) ) + &
+                                    v_z( i_x, i_y, i_z ) * DCONJG( w_vz( i_x, i_y, i_z ) )
+      helicity_mode               = DREAL( helicity_mode_complex )
+      spectral_energy( sh_no )    = spectral_energy( sh_no )      + energy_mode
+      spectral_enstrophy( sh_no ) = spectral_enstrophy( sh_no )   + enstrophy_mode
+      spectral_helicity( sh_no )  = spectral_helicity( sh_no )    + helicity_mode
     END IF
     END DO
     END DO
+
     i_z    = 0
-    DO i_y = 0, k_G
-      energy_mode                                   = CDABS( v_x( i_x, i_y, i_z ) ) ** two + &
-                                                      CDABS( v_y( i_x, i_y, i_z ) ) ** two + &
-                                                      CDABS( v_z( i_x, i_y, i_z ) ) ** two
-      spectral_energy( shell_no ( i_x, i_y, i_z ) ) = spectral_energy( shell_no ( i_x, i_y, i_z ) ) + energy_mode
-      enstrophy                                     = enstrophy + k_2( i_x, i_y, i_z) * energy_mode
+    DO i_y = 1, k_G
+      sh_no = shell_no( i_x, i_y, i_z )
+      energy_mode                 = CDABS( v_x( i_x, i_y, i_z ) ) ** two + &
+                                    CDABS( v_y( i_x, i_y, i_z ) ) ** two + &
+                                    CDABS( v_z( i_x, i_y, i_z ) ) ** two
+      enstrophy_mode              = CDABS( w_vx( i_x, i_y, i_z ) ) ** two + &
+                                    CDABS( w_vy( i_x, i_y, i_z ) ) ** two + &
+                                    CDABS( w_vz( i_x, i_y, i_z ) ) ** two
+      helicity_mode_complex       = v_x( i_x, i_y, i_z ) * DCONJG( w_vx( i_x, i_y, i_z ) ) + &
+                                    v_y( i_x, i_y, i_z ) * DCONJG( w_vy( i_x, i_y, i_z ) ) + &
+                                    v_z( i_x, i_y, i_z ) * DCONJG( w_vz( i_x, i_y, i_z ) )
+      helicity_mode               = DREAL( helicity_mode_complex )
+      spectral_energy( sh_no )    = spectral_energy( sh_no )      + energy_mode
+      spectral_enstrophy( sh_no ) = spectral_enstrophy( sh_no )   + enstrophy_mode
+      spectral_helicity( sh_no )  = spectral_helicity( sh_no )    + helicity_mode
     END DO
+
+    i_y = 0
+    sh_no = shell_no( i_x, i_y, i_z )
+    energy_mode                 = CDABS( v_x( i_x, i_y, i_z ) ) ** two + &
+                                  CDABS( v_y( i_x, i_y, i_z ) ) ** two + &
+                                  CDABS( v_z( i_x, i_y, i_z ) ) ** two
+    enstrophy_mode              = CDABS( w_vx( i_x, i_y, i_z ) ) ** two + &
+                                  CDABS( w_vy( i_x, i_y, i_z ) ) ** two + &
+                                  CDABS( w_vz( i_x, i_y, i_z ) ) ** two
+    helicity_mode_complex       = v_x( i_x, i_y, i_z ) * DCONJG( w_vx( i_x, i_y, i_z ) ) + &
+                                  v_y( i_x, i_y, i_z ) * DCONJG( w_vy( i_x, i_y, i_z ) ) + &
+                                  v_z( i_x, i_y, i_z ) * DCONJG( w_vz( i_x, i_y, i_z ) )
+    helicity_mode               = DREAL( helicity_mode_complex )
+    spectral_energy( sh_no )    = spectral_energy( sh_no )        + hf * energy_mode
+    spectral_enstrophy( sh_no ) = spectral_enstrophy( sh_no )     + hf * enstrophy_mode
+    spectral_helicity( sh_no )  = spectral_helicity( sh_no )      + hf * helicity_mode
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  S  H  E  L  L      A  V  E  R  A  G  I  N  G
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    spectral_energy_avg( 1 )            = qtr * ( thr * spectral_energy( 1 ) + spectral_energy( 2 ) )
-    spectral_energy_avg( max_shell_no ) = qtr * ( thr * spectral_energy( max_shell_no ) + &
-                                                        spectral_energy( max_shell_no - 1 ) )
+    spectral_energy_avg( 1 )               = qtr * ( thr * spectral_energy( 1 ) + spectral_energy( 2 ) )
+    spectral_energy_avg( max_shell_no )    = qtr * ( thr * spectral_energy( max_shell_no ) + &
+                                                           spectral_energy( max_shell_no - 1 ) )
+    spectral_enstrophy_avg( 1 )            = qtr * ( thr * spectral_enstrophy( 1 ) + spectral_enstrophy( 2 ) )
+    spectral_enstrophy_avg( max_shell_no ) = qtr * ( thr * spectral_enstrophy( max_shell_no ) + &
+                                                           spectral_enstrophy( max_shell_no - 1 ) )
+    spectral_helicity_avg( 1 )             = qtr * ( thr * spectral_helicity( 1 ) + spectral_helicity( 2 ) )
+    spectral_helicity_avg( max_shell_no )  = qtr * ( thr * spectral_helicity( max_shell_no ) + &
+                                                           spectral_helicity( max_shell_no - 1 ) )
 
     DO k_no                             = 2, max_shell_no - 1
 
-        spectral_energy_avg( k_no )     = qtr * ( spectral_energy( k_no - 1 ) + spectral_energy( k_no + 1 ) ) + &
-                                           hf * ( spectral_energy( k_no ) )
+      spectral_energy_avg( k_no )    = qtr * ( spectral_energy( k_no - 1 ) + spectral_energy( k_no + 1 ) ) + &
+                                        hf * ( spectral_energy( k_no ) )
+      spectral_enstrophy_avg( k_no ) = qtr * ( spectral_enstrophy( k_no - 1 ) + spectral_enstrophy( k_no + 1 ) ) + &
+                                        hf * ( spectral_enstrophy( k_no ) )
+      spectral_helicity_avg( k_no )  = qtr * ( spectral_helicity( k_no - 1 ) + spectral_helicity( k_no + 1 ) ) + &
+                                        hf * ( spectral_helicity( k_no ) )
 
     END DO
 
-    energy = SUM( spectral_energy( : ) )
-    ! Computes the net energy
+    energy    = SUM( spectral_energy(    : ) )
+    enstrophy = SUM( spectral_enstrophy( : ) )
+    helicity  = SUM( spectral_helicity(  : ) )
+    ! Computes the net energy, enstrophy, helicity
 
   END
-
 
   SUBROUTINE compute_energy
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -182,6 +247,19 @@ MODULE system_basicfunctions
 
     CALL fft_c2r( w_vx, w_vy, w_vz, N, Nh, w_ux, w_uy, w_uz )
     ! Real Vorticity
+
+  END
+
+  SUBROUTINE compute_helicity
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL this to get helicity
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+
+    helicity = hf * SUM( w_ux * u_x + w_uy * u_y + w_uz * u_z ) / N3
 
   END
 

@@ -79,7 +79,6 @@ MODULE system_vorticitysolver
     !  A  L  L  O  C  A  T  I  O  N     F  O  R     S  O  L  V  E  R
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-		CALL allocate_vorticity
 		ALLOCATE(vXw_x(0:Nh,-Nh:Nh-1,-Nh:Nh-1),vXw_y(0:Nh,-Nh:Nh-1,-Nh:Nh-1),vXw_z(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
 		ALLOCATE(uXw_x(0:N-1,0:N-1,0:N-1),uXw_y(0:N-1,0:N-1,0:N-1),uXw_z(0:N-1,0:N-1,0:N-1))
 
@@ -482,8 +481,6 @@ MODULE system_vorticitysolver
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		!  D  E  A  L  L  O  C  A  T  I  O  N
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-		CALL deallocate_vorticity
 
 		DEALLOCATE(vXw_x,vXw_y,vXw_z)
 		DEALLOCATE(uXw_x,uXw_y,uXw_z)

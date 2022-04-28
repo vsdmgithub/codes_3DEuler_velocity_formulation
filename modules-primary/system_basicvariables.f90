@@ -65,11 +65,15 @@ MODULE system_basicvariables
   ! FUNCTION VARIABLES
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
   DOUBLE PRECISION ::energy
+  DOUBLE PRECISION ::helicity
   DOUBLE PRECISION ::energy_initial,v_rms_1D
   DOUBLE PRECISION ::k_dot_v_norm
   DOUBLE PRECISION ::enstrophy
   DOUBLE PRECISION ::norm_factor
   DOUBLE PRECISION ::energy_mode
+  DOUBLE PRECISION ::enstrophy_mode
+  DOUBLE PRECISION ::helicity_mode
+  DOUBLE COMPLEX   ::helicity_mode_complex
   ! _________________________
   ! CHARACTERS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
@@ -104,6 +108,9 @@ MODULE system_basicvariables
   ! Every grid has its modulus, |k|
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::k_x,k_y,k_z,k_2,truncator
   ! wavenumber,truncator matrix
+  DOUBLE COMPLEX,DIMENSION(:,:,:),ALLOCATABLE   ::h_pos_x,h_pos_y,h_pos_z
+  DOUBLE COMPLEX,DIMENSION(:,:,:),ALLOCATABLE   ::h_neg_x,h_neg_y,h_neg_z
+  ! Helical basis
   DOUBLE COMPLEX,DIMENSION(:,:,:),ALLOCATABLE   ::v_x,v_y,v_z
   ! Spectral velocity matrix (will be updated after every time step)
   DOUBLE COMPLEX,DIMENSION(:,:,:),ALLOCATABLE   ::w_vx,w_vy,w_vz
@@ -112,6 +119,8 @@ MODULE system_basicvariables
   ! FOURIER (SHELL AVG) - SPECTRAL ARRAYS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DOUBLE PRECISION,DIMENSION(:),ALLOCATABLE     ::spectral_energy,spectral_energy_avg
+  DOUBLE PRECISION,DIMENSION(:),ALLOCATABLE     ::spectral_enstrophy,spectral_enstrophy_avg
+  DOUBLE PRECISION,DIMENSION(:),ALLOCATABLE     ::spectral_helicity,spectral_helicity_avg
   ! Spectral data Integrated over spherical shell of radius k_mod
   INTEGER(KIND=4),DIMENSION(:),ALLOCATABLE      ::count_modes_shell
   ! This counts no of modes that have (k-1)<|\vec{k}|<k
@@ -251,7 +260,7 @@ MODULE system_basicvariables
     ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     ! A U X I L A R Y
     ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    no_of_debug             = 2
+    no_of_debug             = 5
     ! No of times that the program looks for any 'NaN' while marching forward in time.
 
     t_step_debug            = t_step_total / no_of_debug
@@ -286,8 +295,10 @@ MODULE system_basicvariables
     ! _________________________
     ! LOCAL VARIABLES
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
-    DOUBLE PRECISION::diff_ceiling,k_mod,k_mod_2
+    DOUBLE PRECISION::diff_ceiling
     DOUBLE PRECISION::kx,ky,kz
+    DOUBLE PRECISION::k_per_2,k_mod,k_mod_2
+    DOUBLE PRECISION::h_real_mod,h_imag_mod
 
     CALL allocate_operators
     ! Allocates the arrays declared here.
@@ -316,6 +327,7 @@ MODULE system_basicvariables
       ! Just the k component matrix storing its grid points.
 
       k_mod_2               = kx**two + ky**two + kz**two
+      k_per_2               = kx**two + ky**two
       k_2( i_x, i_y, i_z )  = k_mod_2
       k_mod                 = DSQRT( k_mod_2 )
       ! Square of distance to origin
@@ -370,6 +382,32 @@ MODULE system_basicvariables
 
       END IF
 
+      !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      !  H E L I C A L   B A S I S
+      !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+      IF ( k_per_2 .GT. tol ) THEN
+
+        h_real_mod               = root_2 * DSQRT( k_per_2 )
+        h_imag_mod               = root_2 * DSQRT( k_per_2 * k_mod_2 )
+        h_pos_x( i_x, i_y, i_z ) = ( - ky / h_real_mod ) + i * ( - kx * kz / h_imag_mod )
+        h_pos_y( i_x, i_y, i_z ) = ( + kx / h_real_mod ) + i * ( - ky * kz / h_imag_mod )
+        h_pos_z( i_x, i_y, i_z ) =                       + i * ( + k_per_2 / h_imag_mod )
+        h_neg_x( i_x, i_y, i_z ) = ( - ky / h_real_mod ) - i * ( - kx * kz / h_imag_mod )
+        h_neg_y( i_x, i_y, i_z ) = ( + kx / h_real_mod ) - i * ( - ky * kz / h_imag_mod )
+        h_neg_z( i_x, i_y, i_z ) =                       - i * ( + k_per_2 / h_imag_mod )
+
+      ELSE
+
+        h_pos_x( i_x, i_y, i_z ) = +     one / root_2
+        h_pos_y( i_x, i_y, i_z ) = + i * one / root_2
+        h_pos_z( i_x, i_y, i_z ) =       zero
+        h_neg_x( i_x, i_y, i_z ) = +     one / root_2
+        h_neg_y( i_x, i_y, i_z ) = - i * one / root_2
+        h_neg_z( i_x, i_y, i_z ) =       zero
+
+      END IF
+
     END DO
     END DO
     END DO
@@ -397,6 +435,8 @@ MODULE system_basicvariables
     ALLOCATE(axis(0:N-1))
     ALLOCATE(k_2(0:Nh,-Nh:Nh-1,-Nh:Nh-1),truncator(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
     ALLOCATE(k_x(0:Nh,-Nh:Nh-1,-Nh:Nh-1),k_y(0:Nh,-Nh:Nh-1,-Nh:Nh-1),k_z(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
+    ALLOCATE(h_pos_x(0:Nh,-Nh:Nh-1,-Nh:Nh-1),h_pos_y(0:Nh,-Nh:Nh-1,-Nh:Nh-1),h_pos_z(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
+    ALLOCATE(h_neg_x(0:Nh,-Nh:Nh-1,-Nh:Nh-1),h_neg_y(0:Nh,-Nh:Nh-1,-Nh:Nh-1),h_neg_z(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
     ALLOCATE(proj_xx(0:Nh,-Nh:Nh-1,-Nh:Nh-1),proj_yy(0:Nh,-Nh:Nh-1,-Nh:Nh-1),proj_zz(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
     ALLOCATE(proj_xy(0:Nh,-Nh:Nh-1,-Nh:Nh-1),proj_yz(0:Nh,-Nh:Nh-1,-Nh:Nh-1),proj_zx(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
     ALLOCATE(shell_no(0:k_G,-k_G:k_G,-k_G:k_G))
@@ -417,8 +457,13 @@ MODULE system_basicvariables
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ALLOCATE(u_x(0:N-1,0:N-1,0:N-1),u_y(0:N-1,0:N-1,0:N-1),u_z(0:N-1,0:N-1,0:N-1))
     ALLOCATE(v_x(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_y(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_z(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
-    ALLOCATE(spectral_energy(0:max_shell_no))
-    ALLOCATE(spectral_energy_avg(0:max_shell_no))
+
+    ALLOCATE(spectral_energy(0       :max_shell_no))
+    ALLOCATE(spectral_enstrophy(0    :max_shell_no))
+    ALLOCATE(spectral_enstrophy_avg(0:max_shell_no))
+    ALLOCATE(spectral_helicity(0     :max_shell_no))
+    ALLOCATE(spectral_helicity_avg(0 :max_shell_no))
+    ALLOCATE(spectral_energy_avg(0   :max_shell_no))
 
 	END
 
@@ -452,7 +497,11 @@ MODULE system_basicvariables
 		DEALLOCATE(v_x,v_y,v_z)
 		DEALLOCATE(u_x,u_y,u_z)
 		DEALLOCATE(spectral_energy)
-		DEALLOCATE(spectral_energy_avg)
+    DEALLOCATE(spectral_energy_avg)
+		DEALLOCATE(spectral_enstrophy)
+		DEALLOCATE(spectral_enstrophy_avg)
+		DEALLOCATE(spectral_helicity_avg)
+		DEALLOCATE(spectral_helicity)
 
 	END
 
@@ -488,6 +537,8 @@ MODULE system_basicvariables
     DEALLOCATE(truncator)
     DEALLOCATE(proj_xx,proj_yy,proj_zz)
     DEALLOCATE(proj_xy,proj_yz,proj_zx)
+    DEALLOCATE(h_pos_x,h_pos_y,h_pos_z)
+    DEALLOCATE(h_neg_x,h_neg_y,h_neg_z)
     DEALLOCATE(shell_no,count_modes_shell)
 
 	END

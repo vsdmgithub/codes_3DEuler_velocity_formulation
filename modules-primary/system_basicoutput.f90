@@ -44,7 +44,6 @@ MODULE system_basicoutput
   CHARACTER(LEN =40) ::sub_dir_3D
   CHARACTER(LEN =40) ::sub_dir_2D
   CHARACTER(LEN =40) ::sub_dir_sp
-  CHARACTER(LEN =40) ::sub_dir_mom
   CHARACTER(LEN =40) ::sub_dir
 
   CONTAINS
@@ -78,7 +77,7 @@ MODULE system_basicoutput
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT  NONE
 
-    path_dir    =   '../euler_data/'
+    path_dir    =   '../euler_data_hel/'
     ! path of the main directory relative to this file.
 
     sub_dir_3D  =   '3D_data/'
@@ -87,14 +86,10 @@ MODULE system_basicoutput
     sub_dir_2D  =   '2D_data/'
     ! Sub directory name to store section files (2D data)
 
-    sub_dir_sp  =   'spectral_data/'
+    sub_dir_sp  =   'k_data/'
     ! Sub directory name to store spectral data
 
-    sub_dir_mom =   'VX_moments/'
-    ! Sub directory name to store vorticity moments
-
-    ! type_sim    =   'CLASSIC_N' // TRIM( ADJUSTL( N_char ) ) // '/'
-    type_sim    =   'VX_MOM_N' // TRIM( ADJUSTL( N_char ) ) // '/'
+    type_sim    =   'HELICAL_N' // TRIM( ADJUSTL( N_char ) ) // '/'
     ! type of simulation, the data is storing
 
     CALL get_simulation_name(name_sim)
@@ -128,8 +123,6 @@ MODULE system_basicoutput
     CALL SYSTEM('mkdir ' // TRIM( ADJUSTL ( file_address ) ) // TRIM( ADJUSTL( sub_dir_sp ) ) )
 
     CALL SYSTEM('mkdir '// TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_3D ) ) )
-
-    CALL SYSTEM('mkdir '// TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_mom ) ) )
 
     CALL SYSTEM('mkdir ' // TRIM( ADJUSTL ( file_address ) ) // TRIM( ADJUSTL( sub_dir_2D ) ) )
 
@@ -204,6 +197,7 @@ MODULE system_basicoutput
     WRITE(233,"(A20,A2,I8)")     'No of PVD saves ','= ',no_of_PVD_saves
     WRITE(233,"(A20,A2,F8.4)")   'Initial energy ','= ',energy
     WRITE(233,"(A20,A2,F8.4)")   'Initial enstrophy ','= ',enstrophy
+    WRITE(233,"(A20,A2,F8.4)")   'Initial helicity ','= ',helicity
     WRITE(233,"(A20,A2,ES8.2)")  'Initial comp   ','= ',k_dot_v_norm
     WRITE(233,"(A20,A2,A8)")    'Initial condition','= ',TRIM( ADJUSTL( IC_type ) )
     WRITE(233,*)
@@ -235,6 +229,7 @@ MODULE system_basicoutput
 
     WRITE(4004,f_d8p4,ADVANCE   ='no')  time_now
     WRITE(4004,f_d32p17,ADVANCE ='no')  energy
+    WRITE(4004,f_d32p17,ADVANCE ='no')  helicity
     WRITE(4004,f_d32p17,ADVANCE ='yes') enstrophy
 
     IF ( t_step .EQ. t_step_total ) THEN
@@ -272,6 +267,40 @@ MODULE system_basicoutput
 
     END DO
     CLOSE(1001)
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_sp ) ) &
+                // 'spectral_enstrophy_t_'//TRIM( ADJUSTL( file_time ) ) // '.dat'
+
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  E  N  S  T  R  O  P  H  Y          S  P  E  C  T  R  U  M
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    OPEN( UNIT = 1002, FILE = file_name )
+    DO k_no = 1 , k_G
+
+      WRITE(1002,f_i8,ADVANCE  ='no')       k_no
+      WRITE(1002,f_d32p17,ADVANCE ='no')    spectral_enstrophy(k_no)
+      WRITE(1002,f_d32p17,ADVANCE ='yes')   spectral_enstrophy_avg(k_no)
+
+    END DO
+    CLOSE(1002)
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_sp ) ) &
+                // 'spectral_helicity_t_'//TRIM( ADJUSTL( file_time ) ) // '.dat'
+
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  H  E  L  I  C  I  T  Y          S  P  E  C  T  R  U  M
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    OPEN( UNIT = 1003, FILE = file_name )
+    DO k_no = 1 , k_G
+
+      WRITE(1003,f_i8,ADVANCE  ='no')       k_no
+      WRITE(1003,f_d32p17,ADVANCE ='no')    spectral_helicity(k_no)
+      WRITE(1003,f_d32p17,ADVANCE ='yes')   spectral_helicity_avg(k_no)
+
+    END DO
+    CLOSE(1003)
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   END
@@ -362,14 +391,15 @@ MODULE system_basicoutput
 
     IF ( t_step .EQ. 0 ) THEN
 
-      WRITE(*,'(A60)') TRIM( ADJUSTL( '-----------------------------------------------------------' ) )
-      WRITE(*,'(A60)') TRIM( ADJUSTL( 'TIME  |   ENERGY   |   ENSTROPHY    |   INCOMPRESSIBILITY '  ) )
-      WRITE(*,'(A60)') TRIM( ADJUSTL( '-----------------------------------------------------------' ) )
+      WRITE(*,'(A70)') TRIM( ADJUSTL( '----------------------------------------------------------------------' ) )
+      WRITE(*,'(A70)') TRIM( ADJUSTL( 'TIME  |   ENERGY   |  ENSTROPHY  |  HELICITY    |   INCOMPRESSIBILITY '  ) )
+      WRITE(*,'(A70)') TRIM( ADJUSTL( '----------------------------------------------------------------------' ) )
 
     END IF
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    WRITE(*,'(F6.3,A3,F8.4,A3,F12.4,A7,E12.4)') time_now,'   ',energy,'   ',enstrophy,'     ',k_dot_v_norm
+    WRITE(*,'(F6.3,A3,F8.4,A3,F10.4,A6,F8.4,A7,E10.4)') time_now,'   ',energy,'   ',&
+    enstrophy,'      ',helicity,'       ',k_dot_v_norm
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     IF ( t_step .EQ. t_step_total ) THEN
