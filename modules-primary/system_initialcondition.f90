@@ -1,3 +1,4 @@
+  ! <f
 ! --------------------------------------------------------------
 ! -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 ! CODE BY:
@@ -18,8 +19,10 @@
 ! TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
 ! INITIAL CONDITION FOR 3D EULER EQUATION
 ! IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
+  ! </f>
 
 MODULE system_initialcondition
+  ! <f
 ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ! ------------
 ! Different initial conditions are coded here
@@ -32,6 +35,7 @@ MODULE system_initialcondition
 ! -------------
 ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
+  ! </f>
   ! [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
   !  SUB-MODULES
   !  ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
@@ -44,6 +48,7 @@ MODULE system_initialcondition
   CONTAINS
 
   SUBROUTINE init_initcondn
+  ! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -72,13 +77,17 @@ MODULE system_initialcondition
     ! Creates a vortex sheets at z = +pi/2, -pi/2, pointing along y direction.
     ! With a background field from IC_exp_decaying_spectrum
 
-    CALL IC_vortex_sheet_with_TG(energy_initial)
+    ! CALL IC_vortex_sheet_with_TG(energy_initial)
     ! Creates a vortex sheets at z = +pi/2, -pi/2, pointing along y direction.
     ! With a background field from Taylor Green
 
     ! CALL IC_vortex_tube(energy_initial)
     ! Creates a vortex tube at z = 0, along z direction.
     ! With a background field from IC_exp_decaying_spectrum
+
+    CALL IC_vortex_cylinder(energy_initial)
+    ! Creates a vortex cylinder, from Bell and Marcus paper 1990
+    ! With a background field from Taylor Green
 
     ! CALL IC_from_file_spectral
     ! Read from file.
@@ -96,8 +105,10 @@ MODULE system_initialcondition
     v_z = truncator * v_z
 
   END
+  ! </f>
 
   SUBROUTINE IC_exp_decaying_spectrum(energy_input)
+  ! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -227,8 +238,10 @@ MODULE system_initialcondition
     v_z = v_z * norm_factor
 
   END
+  ! </f>
 
   SUBROUTINE IC_Kolmogorov_spectrum(energy_input)
+  ! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -379,8 +392,10 @@ MODULE system_initialcondition
     v_z = v_z * norm_factor
 
   END
+  ! </f>
 
   SUBROUTINE IC_perfect_thermalized_spectrum(energy_input)
+  ! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -492,8 +507,10 @@ MODULE system_initialcondition
     v_z = v_z * norm_factor
 
   END
+  ! </f>
 
   SUBROUTINE IC_vortex_sheet(energy_input)
+  ! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -561,8 +578,10 @@ MODULE system_initialcondition
     DEALLOCATE(u_sheet_y)
 
   END
+  ! </f>
 
   SUBROUTINE IC_vortex_sheet_with_TG(energy_input)
+  ! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -648,8 +667,10 @@ MODULE system_initialcondition
     DEALLOCATE(u_sheet_y)
 
   END
+  ! </f>
 
   SUBROUTINE IC_vortex_tube(energy_input)
+  ! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -740,8 +761,90 @@ MODULE system_initialcondition
     DEALLOCATE( u_tube_y, u_tube_z )
 
   END
+  ! </f>
+
+  SUBROUTINE IC_vortex_cylinder(energy_input)
+  ! <f
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+  ! An initial condition with vortex cylinder
+  ! Thickness of the cylinder and the strength of the perturbation is adjustable
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT  NONE
+    ! _________________________
+    ! TRANSFER VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    DOUBLE PRECISION,INTENT(IN)::energy_input
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    INTEGER(KIND=4) ::i_x0,i_y0,i_z0
+    DOUBLE PRECISION::smooth_pm,c_factor
+    DOUBLE PRECISION::r_cyl,r_ind,r_gri
+    DOUBLE PRECISION::G_arg,pert,k_beta
+
+    smooth_pm                            = 0.25D0
+    ! How thick the sheet is, smaller the parameter thicker it is, has to be less than 1
+
+    c_factor                             = smooth_pm * two_pi / thr
+    ! TO KEEP UP THE NOMENCLATURE FOR THIS STUDY.
+    ! With this factor                   => c_factor * i_x = smooth_pm * k_G * x = k_0 * x
+
+    r_cyl                                = two_pi / 6.0D0
+    ! Radius of the cylinder
+
+    r_gri                                = r_cyl / dy
+    ! Grid no for the radius of the cylinder
+
+    pert                                 = 0.10
+    ! Perturbation of the cylinder, pert =0 means no stationary flow
+
+    k_beta                               = 2.0D0
+    ! Width of the gaussian perturbation
+
+    i_x0 = N_x / 2
+    i_y0 = N_y / 2
+    i_z0 = N_z / 2
+
+    DO i_z = 0, N_z - 1
+  	DO i_y = 0, N_y - 1
+  	DO i_x = 0, N_x - 1
+
+      r_ind                = DSQRT( DBLE( ( i_y - i_y0 ) ** two + ( i_z - i_z0 ) ** two ) )
+      u_x( i_x, i_y, i_z ) = DTANH( c_factor * ( r_gri - r_ind ) )
+
+      u_y( i_x, i_y, i_z ) = zero
+
+      G_arg                = hf * ( k_beta ** two ) * ( ( ( i_x - i_x0 ) * dx ) ** two + ( ( i_y - i_y0 ) * dy ) ** two )
+      u_z( i_x, i_y, i_z ) = pert * DEXP( - G_arg )
+
+    END DO
+    END DO
+    END DO
+
+    CALL fft_r2c_vec( u_x, u_y, u_z, v_x, v_y, v_z )
+    ! Getting spectral velocity
+
+    CALL compute_energy_spectral_data
+    ! Gets the energy from spectral space
+
+    norm_factor = DSQRT( energy_input / energy )
+    ! Normalizing the norm_factor, so that we get energy='energy_input'
+
+    v_x = v_x * norm_factor
+    v_y = v_y * norm_factor
+    v_z = v_z * norm_factor
+
+    IC_type = 'VOR-CYL'
+
+  END
+  ! </f>
 
   SUBROUTINE IC_from_file_spectral
+  ! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -790,8 +893,10 @@ MODULE system_initialcondition
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   END
+  ! </f>
 
   SUBROUTINE IC_from_file_real
+  ! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -839,8 +944,10 @@ MODULE system_initialcondition
     ! FFT spectral to real velocity
 
   END
+  ! </f>
 
   SUBROUTINE compute_energy_spectral_data
+  ! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to check the presence of NaN in your spectral velocity data (v(k)),
@@ -883,8 +990,10 @@ MODULE system_initialcondition
     END DO
 
   END
+  ! </f>
 
   SUBROUTINE compute_projected_velocity
+  ! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to project the spectral velocity, to make it incompressible
@@ -911,5 +1020,6 @@ MODULE system_initialcondition
     DEALLOCATE(v_P_x,v_P_y,v_P_z)
 
   END
+  ! </f>
 
 END MODULE system_initialcondition

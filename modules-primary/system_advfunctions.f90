@@ -49,8 +49,8 @@ MODULE system_advfunctions
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !   S  T  R  A  I  N        T  E  N  S  O  R        C  A  L  C.
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    CALL fft_c2r_vec(i*k_x*v_x,hf*i*(k_y*v_x+k_x*v_y),i*k_z*v_z,str_xx,str_xy,str_zz)
-    CALL fft_c2r_vec(i*k_y*v_y,hf*i*(k_y*v_z+k_z*v_y),hf*i*(k_x*v_z+k_z*v_x),str_yy,str_yz,str_zx)
+    ! CALL fft_c2r_vec(i*k_x*v_x,hf*i*(k_y*v_x+k_x*v_y),i*k_z*v_z,str_xx,str_xy,str_zz)
+    ! CALL fft_c2r_vec(i*k_y*v_y,hf*i*(k_y*v_z+k_z*v_y),hf*i*(k_x*v_z+k_z*v_x),str_yy,str_yz,str_zx)
     ! All six components of strain tensor.
 
     w_mod_2 = w_ux ** two + w_uy ** two + w_uz ** two

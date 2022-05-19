@@ -37,7 +37,7 @@ MODULE system_basicoutput
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
   CHARACTER(LEN =140)::file_name
   CHARACTER(LEN =40) ::file_time
-  CHARACTER(LEN =40) ::path_dir
+  CHARACTER(LEN =60) ::path_dir
   CHARACTER(LEN =80) ::type_sim
   CHARACTER(LEN =40) ::name_sim
   CHARACTER(LEN =100)::file_address
@@ -77,7 +77,7 @@ MODULE system_basicoutput
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT  NONE
 
-    path_dir    =   '../euler_data/'
+    path_dir    =   '../GENESIS_DATA/'
     ! path of the main directory relative to this file.
 
     sub_dir_3D  =   '3D_data/'
@@ -90,7 +90,7 @@ MODULE system_basicoutput
     ! Sub directory name to store spectral data
 
     ! type_sim    =   TRIM( ADJUSTL( N_char ) ) // '/'
-    type_sim    =   'VX_STG_' // TRIM( ADJUSTL( N_char ) ) // '/'
+    type_sim    =   'VX_CYL_' // TRIM( ADJUSTL( N_char ) ) // '/'
     ! type of simulation, the data is storing
 
     CALL get_simulation_name(name_sim)
@@ -204,8 +204,7 @@ MODULE system_basicoutput
     WRITE(233,"(A20,A2,I8)") 'Active modes',          '= ',tot_active_modes
     WRITE(233,*)
     WRITE(233,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
-    WRITE(233,"(A150)") 'DESCRIPTION: Vortex sheet along with the TG flow as background, to figure &
-     out the asymmetry in the truncation waves.'
+    WRITE(233,"(A150)") 'DESCRIPTION: Vortex cylinder is modelled with a perturbation' 
 
     CLOSE(233)
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

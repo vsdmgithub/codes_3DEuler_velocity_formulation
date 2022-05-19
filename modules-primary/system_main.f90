@@ -245,16 +245,16 @@ MODULE system_main
     CALL compute_spectral_data
     ! REF-> <<< system_basicfunctions >>>
 
-    CALL compute_strain_tensor
+    ! CALL compute_strain_tensor
     ! REF-> <<< system_advfunctions >>>
 
     ! CALL write_vx_dot_section
     ! REF-> <<< system_advoutput >>>
 
-    CALL write_vx_section
+    ! CALL write_vx_section
     ! REF-> <<< system_advoutput >>>
 
-    CALL write_strain_section
+    ! CALL write_strain_section
     ! REF-> <<< system_advoutput >>>
 
     ! CALL compute_energy_filter
@@ -275,6 +275,9 @@ MODULE system_main
 
       CALL compute_vorticity
       ! REF-> <<< system_basicfunctions >>>
+
+      CALL compute_strain_tensor
+      ! REF-> <<< system_advfunctions >>>
 
       ! CALL write_PVD_velocity
       ! REF-> <<< system_pvdoutput >>>
