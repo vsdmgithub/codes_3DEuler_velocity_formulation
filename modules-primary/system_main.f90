@@ -251,9 +251,6 @@ MODULE system_main
     ! CALL write_vx_dot_section
     ! REF-> <<< system_advoutput >>>
 
-    ! CALL write_vx_section
-    ! REF-> <<< system_advoutput >>>
-
     ! CALL write_strain_section
     ! REF-> <<< system_advoutput >>>
 
@@ -268,6 +265,8 @@ MODULE system_main
       CALL write_temporal_data
       ! REF-> <<< system_basicoutput >>>
 
+      CALL write_vx_section
+      ! REF-> <<< system_advoutput >>>
 
     END IF
 

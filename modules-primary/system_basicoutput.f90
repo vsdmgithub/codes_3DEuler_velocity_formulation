@@ -90,7 +90,7 @@ MODULE system_basicoutput
     ! Sub directory name to store spectral data
 
     ! type_sim    =   TRIM( ADJUSTL( N_char ) ) // '/'
-    type_sim    =   'VX_CYL_' // TRIM( ADJUSTL( N_char ) ) // '/'
+    type_sim    =   'VX_CMP_' // TRIM( ADJUSTL( N_char ) ) // '/'
     ! type of simulation, the data is storing
 
     CALL get_simulation_name(name_sim)
@@ -204,7 +204,7 @@ MODULE system_basicoutput
     WRITE(233,"(A20,A2,I8)") 'Active modes',          '= ',tot_active_modes
     WRITE(233,*)
     WRITE(233,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
-    WRITE(233,"(A150)") 'DESCRIPTION: Vortex cylinder is modelled with a perturbation' 
+    WRITE(233,"(A150)") 'DESCRIPTION: Vortex sheet is compressed slightly at the origin'
 
     CLOSE(233)
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

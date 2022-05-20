@@ -77,6 +77,10 @@ MODULE system_initialcondition
     ! Creates a vortex sheets at z = +pi/2, -pi/2, pointing along y direction.
     ! With a background field from IC_exp_decaying_spectrum
 
+    CALL IC_vortex_sheet_compression(energy_initial)
+    ! Creates a vortex sheets at z = +pi/2, -pi/2, pointing along y direction.
+    ! With a background field from IC_exp_decaying_spectrum
+
     ! CALL IC_vortex_sheet_with_TG(energy_initial)
     ! Creates a vortex sheets at z = +pi/2, -pi/2, pointing along y direction.
     ! With a background field from Taylor Green
@@ -85,7 +89,7 @@ MODULE system_initialcondition
     ! Creates a vortex tube at z = 0, along z direction.
     ! With a background field from IC_exp_decaying_spectrum
 
-    CALL IC_vortex_cylinder(energy_initial)
+    ! CALL IC_vortex_cylinder(energy_initial)
     ! Creates a vortex cylinder, from Bell and Marcus paper 1990
     ! With a background field from Taylor Green
 
@@ -580,6 +584,129 @@ MODULE system_initialcondition
   END
   ! </f>
 
+  SUBROUTINE IC_vortex_sheet_compression(energy_input)
+  ! <f
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+  ! An initial condition with vortex sheet imposed with a simple strain compressing the sheet at the center
+  ! Ratio of energy split between sheet and background is adjustable
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT  NONE
+    ! _________________________
+    ! TRANSFER VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    DOUBLE PRECISION,INTENT(IN)::energy_input
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    DOUBLE PRECISION::u0,smooth_pm,c_factor
+    DOUBLE PRECISION::energy_sheet,energy_ratio,energy_comp
+    DOUBLE PRECISION::gaus1,gaus3,x_gr1,x_gr3,y_gr,z_gr,k_beta
+    DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::u_sheet_y
+    INTEGER(KIND=4) ::i_x0,i_y0,i_z0
+    INTEGER(KIND=4) ::i_x1,i_x3
+
+    ALLOCATE( u_sheet_y( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+
+    u0           = one
+    ! Normalizing parameter
+
+    smooth_pm    = 0.25D0
+    ! How thick the sheet is, smaller the parameter thicker it is, has to be less than 1
+
+    c_factor = smooth_pm * two_pi / thr
+    ! TO KEEP UP THE NOMENCLATURE FOR THIS STUDY.
+    ! With this factor => c_factor * i_x = smooth_pm * k_G * x = k_0 * x
+
+    energy_ratio = 0.005D0
+    ! Percentage of energy in compression field
+
+    i_x0 = INT( N_x / 2 )
+    i_y0 = INT( N_y / 2 )
+    i_z0 = INT( N_z / 2)
+    i_x1 = 1 * INT( N_x / 4 )
+    i_x3 = 3 * INT( N_x / 4 )
+
+    k_beta = 4.0D0
+    ! Spread of the gaussian damping
+
+    DO i_z = 0, N_z - 1
+  	DO i_y = 0, N_y - 1
+  	DO i_x = 0, N_x - 1
+
+      u_sheet_y( i_x, i_y, i_z ) = u0 * ( two + DTANH( - c_factor * DBLE( i_x - 1 * ( N_x / 4 ) ) ) &
+                                              + DTANH( + c_factor * DBLE( i_x - 3 * ( N_x / 4 ) ) ) )
+
+      x_gr1                      = DBLE( i_x - i_x1 ) * dx
+      x_gr3                      = DBLE( i_x - i_x3 ) * dx
+      y_gr                       = DBLE( i_y - i_y0 ) * dy
+      z_gr                       = DBLE( i_z - i_z0 ) * dz
+
+      ! gaus1                      = DEXP( - hf * ( k_beta ** two ) * ( x_gr1 ** two + y_gr ** two + z_gr ** two ) )
+      ! gaus3                      = DEXP( - hf * ( k_beta ** two ) * ( x_gr3 ** two + y_gr ** two + z_gr ** two ) )
+
+      gaus1                      = DEXP( - hf * ( k_beta ** two ) * ( x_gr1 ** two + z_gr ** two ) )
+      gaus3                      = DEXP( - hf * ( k_beta ** two ) * ( x_gr3 ** two + z_gr ** two ) )
+
+      u_x( i_x, i_y, i_z )       = - x_gr1 * gaus1 + x_gr3 * gaus3
+      u_y( i_x, i_y, i_z )       = zero
+      u_z( i_x, i_y, i_z )       = + z_gr  * gaus1 - z_gr  * gaus3
+
+    END DO
+    END DO
+    END DO
+
+    CALL fft_r2c( u_sheet_y, v_y )
+    ! FFT spectral to real velocity
+
+    CALL fourier_smoothing
+    ! Smooths the spectrum near the truncation to remove any gibbsian oscillations
+
+    CALL fft_c2r( v_y, u_sheet_y )
+    ! Real velocity to spectral velocity
+
+    energy_sheet = hf * SUM( u_sheet_y ** two ) / N3
+    u0           = DSQRT( ( one - energy_ratio ) * energy_input / energy_sheet )
+    u_sheet_y    = u0 * u_sheet_y
+    ! Normalization of sheet
+
+    CALL fft_r2c_vec( u_x, u_y, u_z, v_x, v_y, v_z )
+    ! Getting spectral velocity
+
+    CALL compute_projected_velocity
+    ! Makes the compressing field divergenceless
+
+    v_x( 0, 0, 0 ) = c0
+    v_y( 0, 0, 0 ) = c0
+    v_z( 0, 0, 0 ) = c0
+
+    CALL fft_c2r_vec( v_x, v_y, v_z, u_x, u_y, u_z )
+    ! Getting real velocity
+
+    energy_comp  = hf * SUM( ( u_x ** two ) + ( u_y ** two ) + ( u_z ** two ) ) / N3
+    u0           = DSQRT( energy_ratio * energy_input / energy_comp )
+    u_x          = u0 * u_x
+    u_y          = u0 * u_y
+    u_z          = u0 * u_z
+    ! Normalisation of comp flow
+
+    CALL fft_r2c_vec( u_x, u_y, u_z, v_x, v_y, v_z )
+    ! Getting spectral velocity
+
+    u_y          = u_y + u_sheet_y
+    ! ! Combining both flows (superposition)
+
+    CALL fft_r2c( u_y, v_y )
+    ! FFT spectral to real velocity
+
+    IC_type      = 'SHT_CMP'
+
+  END
+  ! </f>
+
   SUBROUTINE IC_vortex_sheet_with_TG(energy_input)
   ! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1018,6 +1145,91 @@ MODULE system_initialcondition
     v_z   = proj_zx * v_P_x + proj_yz * v_P_y + proj_zz * v_P_z
 
     DEALLOCATE(v_P_x,v_P_y,v_P_z)
+
+  END
+  ! </f>
+
+  SUBROUTINE fourier_smoothing
+  ! <f
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL this to smoothen the spectral velocities to deprive of any Gibbsian oscillations
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    DOUBLE PRECISION::smoothing_exp,k_cutoff,arg
+
+    smoothing_exp = 6.0D0
+    ! Power in the exponential, atleast 2, can go upto 32
+
+    k_cutoff = DBLE( N_min / 4 )
+    ! cutoff wavenumber where the filter starts to act vigorously.
+
+    DO j_x = kMin_x, kMax_x
+  	DO j_y = kMin_y, kMax_y
+  	DO j_z = kMin_z, kMax_z
+
+      arg = DEXP( - ( DSQRT( k_2( j_x, j_y, j_z ) ) / k_cutoff ) ** smoothing_exp )
+
+      v_x( j_x, j_y, j_z ) = v_x( j_x, j_y, j_z ) * arg
+      v_y( j_x, j_y, j_z ) = v_y( j_x, j_y, j_z ) * arg
+      v_z( j_x, j_y, j_z ) = v_z( j_x, j_y, j_z ) * arg
+
+    END DO
+    END DO
+    END DO
+
+  END
+  ! </f>
+
+  SUBROUTINE check_compressibility
+  ! <f
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL this to check incompressibility condition. Sums over all residues
+  ! of incompressibility and prints it. Of order 10^(-12).
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+
+    k_dot_v_norm   = zero
+
+    DO i_x         = kMin_x + 1, kMax_x - 1
+    DO i_y         = kMin_y , kMax_y
+    DO i_z         = kMin_z , kMax_z
+      k_dot_v_norm = k_dot_v_norm + CDABS( k_x( i_x, i_y, i_z ) * v_x( i_x, i_y, i_z ) + &
+                                           k_y( i_x, i_y, i_z ) * v_y( i_x, i_y, i_z ) + &
+                                           k_z( i_x, i_y, i_z ) * v_z( i_x, i_y, i_z ) ) ** two
+    END DO
+    END DO
+    END DO
+
+    i_x            = kMin_x
+    DO i_y         = kMin_y , kMax_y
+    DO i_z         = kMin_z , kMax_z
+      k_dot_v_norm = k_dot_v_norm + hf* CDABS( k_x( i_x, i_y, i_z ) * v_x( i_x, i_y, i_z ) + &
+                                               k_y( i_x, i_y, i_z ) * v_y( i_x, i_y, i_z ) + &
+                                               k_z( i_x, i_y, i_z ) * v_z( i_x, i_y, i_z ) ) ** two
+    END DO
+    END DO
+
+    i_x            = kMax_x
+    DO i_y         = kMin_y , kMax_y
+    DO i_z         = kMin_z , kMax_z
+      k_dot_v_norm = k_dot_v_norm + hf* CDABS( k_x( i_x, i_y, i_z ) * v_x( i_x, i_y, i_z ) + &
+                                               k_y( i_x, i_y, i_z ) * v_y( i_x, i_y, i_z ) + &
+                                               k_z( i_x, i_y, i_z ) * v_z( i_x, i_y, i_z ) ) ** two
+    END DO
+    END DO
+
+    k_dot_v_norm = DSQRT( k_dot_v_norm )
+
+    print*,'COMPRESSIBILITY = ',k_dot_v_norm
 
   END
   ! </f>

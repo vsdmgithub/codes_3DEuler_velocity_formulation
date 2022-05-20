@@ -83,14 +83,14 @@ MODULE system_advoutput
     ! Writes 'time_now' as a CHARACTER
 
     file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_2D ) ) &
-                // 'VX_sec_t_'//TRIM( ADJUSTL( file_time ) ) // '.dat'
+                // 'VX_sec_XY_t_'//TRIM( ADJUSTL( file_time ) ) // '.dat'
 
     OPEN( UNIT = 455, FILE = file_name)
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  P  R  I  N   T          O  U  T  P  U  T   -   DATA FILE-section
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-       i_z = 0
+       i_z = INT( N_z / 2 )
     DO i_x = 0, N_x - 1
     DO i_y = 0, N_y - 1
       WRITE(455,f_d32p17,ADVANCE='no')  w_ux( i_x, i_y, i_z )
@@ -102,6 +102,45 @@ MODULE system_advoutput
     CLOSE(455)
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_2D ) ) &
+                // 'VX_sec_XZ_t_'//TRIM( ADJUSTL( file_time ) ) // '.dat'
+
+    OPEN( UNIT = 456, FILE = file_name)
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  P  R  I  N   T          O  U  T  P  U  T   -   DATA FILE-section
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+       i_y = INT( N_y / 2 )
+    DO i_x = 0, N_x - 1
+    DO i_z = 0, N_z - 1
+      WRITE(456,f_d32p17,ADVANCE='no')  w_ux( i_x, i_y, i_z )
+      WRITE(456,f_d32p17,ADVANCE='no')  w_uy( i_x, i_y, i_z )
+      WRITE(456,f_d32p17,ADVANCE='yes') w_uz( i_x, i_y, i_z )
+    END DO
+    END DO
+
+    CLOSE(456)
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_2D ) ) &
+                // 'VX_sec_YZ_t_'//TRIM( ADJUSTL( file_time ) ) // '.dat'
+
+    OPEN( UNIT = 457, FILE = file_name)
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  P  R  I  N   T          O  U  T  P  U  T   -   DATA FILE-section
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+       i_x = INT( N_x / 4 )
+    DO i_y = 0, N_y - 1
+    DO i_z = 0, N_z - 1
+      WRITE(457,f_d32p17,ADVANCE='no')  w_ux( i_x, i_y, i_z )
+      WRITE(457,f_d32p17,ADVANCE='no')  w_uy( i_x, i_y, i_z )
+      WRITE(457,f_d32p17,ADVANCE='yes') w_uz( i_x, i_y, i_z )
+    END DO
+    END DO
+
+    CLOSE(457)
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   END
 
   SUBROUTINE write_strain_section()
