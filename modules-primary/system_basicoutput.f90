@@ -90,7 +90,7 @@ MODULE system_basicoutput
     ! Sub directory name to store spectral data
 
     ! type_sim    =   TRIM( ADJUSTL( N_char ) ) // '/'
-    type_sim    =   'VX_CMP_' // TRIM( ADJUSTL( N_char ) ) // '/'
+    type_sim    =   'VX_DIS_' // TRIM( ADJUSTL( N_char ) ) // '/'
     ! type of simulation, the data is storing
 
     CALL get_simulation_name(name_sim)

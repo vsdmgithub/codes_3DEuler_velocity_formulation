@@ -143,6 +143,39 @@ MODULE system_advoutput
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   END
 
+  SUBROUTINE write_ve_section()
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! This writes a real space data given for a particular section
+  ! into a .dat file named d_nam
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    IMPLICIT NONE
+
+    WRITE (file_time,f_d8p4) time_now
+    ! Writes 'time_now' as a CHARACTER
+
+    file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_2D ) ) &
+                // 'VR_sec_XY_t_'//TRIM( ADJUSTL( file_time ) ) // '.dat'
+
+    OPEN( UNIT = 255, FILE = file_name)
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  P  R  I  N   T          O  U  T  P  U  T   -   DATA FILE-section
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+       i_z = INT( N_z / 2 )
+    DO i_x = 0, N_x - 1
+    DO i_y = 0, N_y - 1
+      WRITE(255,f_d32p17,ADVANCE='no')  u_x( i_x, i_y, i_z )
+      WRITE(255,f_d32p17,ADVANCE='no')  u_y( i_x, i_y, i_z )
+      WRITE(255,f_d32p17,ADVANCE='yes') u_z( i_x, i_y, i_z )
+    END DO
+    END DO
+
+    CLOSE(255)
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  END
+
   SUBROUTINE write_strain_section()
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
