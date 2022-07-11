@@ -174,6 +174,26 @@ MODULE system_advoutput
 
     CLOSE(255)
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_2D ) ) &
+                // 'VR_sec_XZ_t_'//TRIM( ADJUSTL( file_time ) ) // '.dat'
+
+    OPEN( UNIT = 256, FILE = file_name)
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  P  R  I  N   T          O  U  T  P  U  T   -   DATA FILE-section
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+       i_y = INT( N_y / 2 )
+    DO i_x = 0, N_x - 1
+    DO i_z = 0, N_z - 1
+      WRITE(256,f_d32p17,ADVANCE='no')  u_x( i_x, i_y, i_z )
+      WRITE(256,f_d32p17,ADVANCE='no')  u_y( i_x, i_y, i_z )
+      WRITE(256,f_d32p17,ADVANCE='yes') u_z( i_x, i_y, i_z )
+    END DO
+    END DO
+
+    CLOSE(256)
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   END
 
   SUBROUTINE write_strain_section()

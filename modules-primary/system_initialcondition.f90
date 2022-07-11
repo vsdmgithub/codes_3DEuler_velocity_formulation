@@ -733,8 +733,8 @@ MODULE system_initialcondition
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
     DOUBLE PRECISION::u0,smooth_pm,c_factor
     DOUBLE PRECISION::psi,cs,sn
-    DOUBLE PRECISION::x_ro1,x_ro3,y_ro1,y_ro3,z_ro
-    DOUBLE PRECISION::ux_ro1,ux_ro3,uy_ro1,uy_ro3
+    DOUBLE PRECISION::x_ro1,x_ro3,y_ro1,y_ro3,z_ro1,z_ro3,y_ro,z_ro
+    DOUBLE PRECISION::ux_ro1,ux_ro3,uy_ro1,uy_ro3,uz_ro1,uz_ro3
     DOUBLE PRECISION::energy_sheet,energy_ratio,energy_dist
     DOUBLE PRECISION::gaus1,gaus3,x_gr1,x_gr3,y_gr,z_gr,k_beta
     DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::u_sheet_y
@@ -746,7 +746,7 @@ MODULE system_initialcondition
     u0                 = one
     ! Normalizing parameter
 
-    smooth_pm          = 0.25D0
+    smooth_pm          = 0.40D0
     ! How thick the sheet is, smaller the parameter thicker it is, has to be less than 1
 
     c_factor           = smooth_pm * two_pi / thr
@@ -756,7 +756,7 @@ MODULE system_initialcondition
     energy_ratio       = 0.01D0
     ! Percentage of energy in compression field
 
-    psi                = 45.0D0 * ( two_pi / 360.0D0 )
+    psi                = 60.0D0 * ( two_pi / 360.0D0 )
     cs                 = DCOS( psi )
     sn                 = DSIN( psi )
     ! Angle at which the compression is oriented
@@ -770,6 +770,42 @@ MODULE system_initialcondition
     k_beta             = 4.0D0
     ! Spread of the gaussian damping
 
+    ! Disturbance in XY Plane
+    ! DO i_z = 0, N_z - 1
+  	! DO i_y = 0, N_y - 1
+  	! DO i_x = 0, N_x - 1
+    !
+    !   u_sheet_y( i_x, i_y, i_z ) = u0 * ( two + DTANH( - c_factor * DBLE( i_x - 1 * ( N_x / 4 ) ) ) &
+    !                                           + DTANH( + c_factor * DBLE( i_x - 3 * ( N_x / 4 ) ) ) )
+    !
+    !   x_gr1                      = DBLE( i_x - i_x1 ) * dx
+    !   x_gr3                      = DBLE( i_x - i_x3 ) * dx
+    !   y_gr                       = DBLE( i_y - i_y0 ) * dy
+    !   z_gr                       = DBLE( i_z - i_z0 ) * dz
+    !
+    !   z_ro                       = z_gr
+    !
+    !   x_ro1                      = x_gr1 * cs + y_gr * sn
+    !   y_ro1                      = y_gr  * cs - x_gr1 * sn
+    !   gaus1                      = DEXP( - hf * ( k_beta ** two ) * ( x_ro1 ** two + y_ro1 ** two + z_ro ** two ) )
+    !   ux_ro1                     = - x_ro1 * gaus1
+    !   uy_ro1                     = + y_ro1 * gaus1
+    !
+    !   x_ro3                      = x_gr3 * cs + y_gr * sn
+    !   y_ro3                      = y_gr  * cs - x_gr3 * sn
+    !   gaus3                      = DEXP( - hf * ( k_beta ** two ) * ( x_ro3 ** two + y_ro3 ** two + z_ro ** two ) )
+    !   ux_ro3                     = + x_ro3 * gaus3
+    !   uy_ro3                     = - y_ro3 * gaus3
+    !
+    !   u_x( i_x, i_y, i_z )       = ( ux_ro1 + ux_ro3 ) * cs - ( uy_ro1 + uy_ro3 ) * sn
+    !   u_y( i_x, i_y, i_z )       = ( ux_ro1 + ux_ro3 ) * sn + ( uy_ro1 + uy_ro3 ) * cs
+    !   u_z( i_x, i_y, i_z )       = zero
+    !
+    ! END DO
+    ! END DO
+    ! END DO
+    !
+    ! Disturbance in XZ Plane
     DO i_z = 0, N_z - 1
   	DO i_y = 0, N_y - 1
   	DO i_x = 0, N_x - 1
@@ -782,23 +818,23 @@ MODULE system_initialcondition
       y_gr                       = DBLE( i_y - i_y0 ) * dy
       z_gr                       = DBLE( i_z - i_z0 ) * dz
 
-      z_ro                       = z_gr
+      y_ro                       = y_gr
 
-      x_ro1                      = x_gr1 * cs + y_gr * sn
-      y_ro1                      = y_gr * cs - x_gr1 * sn
-      gaus1                      = DEXP( - hf * ( k_beta ** two ) * ( x_ro1 ** two + y_ro1 ** two + z_ro ** two ) )
+      x_ro1                      = x_gr1 * cs + z_gr * sn
+      z_ro1                      = z_gr  * cs - x_gr1 * sn
+      gaus1                      = DEXP( - hf * ( k_beta ** two ) * ( x_ro1 ** two + y_ro ** two + z_ro1 ** two ) )
       ux_ro1                     = - x_ro1 * gaus1
-      uy_ro1                     = + y_ro1 * gaus1
+      uz_ro1                     = + z_ro1 * gaus1
 
-      x_ro3                      = x_gr3 * cs + y_gr * sn
-      y_ro3                      = y_gr * cs - x_gr3 * sn
-      gaus3                      = DEXP( - hf * ( k_beta ** two ) * ( x_ro3 ** two + y_ro3 ** two + z_ro ** two ) )
+      x_ro3                      = x_gr3 * cs + z_gr * sn
+      z_ro3                      = z_gr  * cs - x_gr3 * sn
+      gaus3                      = DEXP( - hf * ( k_beta ** two ) * ( x_ro3 ** two + y_ro ** two + z_ro3 ** two ) )
       ux_ro3                     = + x_ro3 * gaus3
-      uy_ro3                     = - y_ro3 * gaus3
+      uz_ro3                     = - z_ro3 * gaus3
 
-      u_x( i_x, i_y, i_z )       = ( ux_ro1 + ux_ro3 ) * cs - ( uy_ro1 + uy_ro3 ) * sn
-      u_y( i_x, i_y, i_z )       = ( ux_ro1 + ux_ro3 ) * sn + ( uy_ro1 + uy_ro3 ) * cs
-      u_z( i_x, i_y, i_z )       = zero
+      u_x( i_x, i_y, i_z )       = ( ux_ro1 + ux_ro3 ) * cs - ( uz_ro1 + uz_ro3 ) * sn
+      u_y( i_x, i_y, i_z )       = zero
+      u_z( i_x, i_y, i_z )       = ( ux_ro1 + ux_ro3 ) * sn + ( uz_ro1 + uz_ro3 ) * cs
 
     END DO
     END DO
@@ -847,7 +883,7 @@ MODULE system_initialcondition
     CALL fft_r2c( u_y, v_y )
     ! FFT spectral to real velocity
 
-    IC_type      = 'DIS-45'
+    IC_type      = 'DIS-60'
 
   END
   ! </f>
