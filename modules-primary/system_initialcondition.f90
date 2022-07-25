@@ -746,7 +746,7 @@ MODULE system_initialcondition
     u0                 = one
     ! Normalizing parameter
 
-    smooth_pm          = 0.40D0
+    smooth_pm          = 0.750D0
     ! How thick the sheet is, smaller the parameter thicker it is, has to be less than 1
 
     c_factor           = smooth_pm * two_pi / thr
@@ -756,7 +756,7 @@ MODULE system_initialcondition
     energy_ratio       = 0.01D0
     ! Percentage of energy in compression field
 
-    psi                = 60.0D0 * ( two_pi / 360.0D0 )
+    psi                = 0.0D0 * ( two_pi / 360.0D0 )
     cs                 = DCOS( psi )
     sn                 = DSIN( psi )
     ! Angle at which the compression is oriented
@@ -767,7 +767,7 @@ MODULE system_initialcondition
     i_x1               = 1 * INT( N_x / 4 )
     i_x3               = 3 * INT( N_x / 4 )
 
-    k_beta             = 4.0D0
+    k_beta             = 5.0D0
     ! Spread of the gaussian damping
 
     ! Disturbance in XY Plane
@@ -810,7 +810,7 @@ MODULE system_initialcondition
   	DO i_y = 0, N_y - 1
   	DO i_x = 0, N_x - 1
 
-      u_sheet_y( i_x, i_y, i_z ) = u0 * ( two + DTANH( - c_factor * DBLE( i_x - 1 * ( N_x / 4 ) ) ) &
+      u_sheet_y( i_x, i_y, i_z ) = u0 * ( one + DTANH( - c_factor * DBLE( i_x - 1 * ( N_x / 4 ) ) ) &
                                               + DTANH( + c_factor * DBLE( i_x - 3 * ( N_x / 4 ) ) ) )
 
       x_gr1                      = DBLE( i_x - i_x1 ) * dx
@@ -883,7 +883,7 @@ MODULE system_initialcondition
     CALL fft_r2c( u_y, v_y )
     ! FFT spectral to real velocity
 
-    IC_type      = 'DIS-60'
+    IC_type      = 'TEST'
 
   END
   ! </f>
@@ -1347,7 +1347,7 @@ MODULE system_initialcondition
     smoothing_exp = 6.0D0
     ! Power in the exponential, atleast 2, can go upto 32
 
-    k_cutoff = DBLE( N_min / 4 )
+    k_cutoff = DBLE( N_min / 3 )
     ! cutoff wavenumber where the filter starts to act vigorously.
 
     DO j_x = kMin_x, kMax_x

@@ -41,7 +41,9 @@ MODULE system_pvdoutput
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
   ! CHARACTER(LEN=40)::pvd_file
   INTEGER(KIND=4)::pvd_N_x,pvd_N_y,pvd_N_z
+  INTEGER(KIND=4)::y_sec
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::vec_x,vec_y,vec_z,scalr
+  DOUBLE PRECISION,DIMENSION(:,:),ALLOCATABLE ::v2d_x,v2d_y,v2d_z,sca2d
   DOUBLE PRECISION,DIMENSION(:),ALLOCATABLE ::pvd_ax_x,pvd_ax_y,pvd_ax_z
 
   ! TYPE(VTK_file_handle)::fd
@@ -61,7 +63,7 @@ MODULE system_pvdoutput
 
     pvd_N_x = N_x
     pvd_N_y = N_y
-    pvd_N_z = N_z 
+    pvd_N_z = N_z
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  A  L  L  O  C  A  T  I  O  N
@@ -69,6 +71,10 @@ MODULE system_pvdoutput
     ALLOCATE( pvd_ax_x( 0 : pvd_N_x - 1 ) )
     ALLOCATE( pvd_ax_y( 0 : pvd_N_y - 1 ) )
     ALLOCATE( pvd_ax_z( 0 : pvd_N_z - 1 ) )
+    ALLOCATE( v2d_x( 0 : pvd_N_x - 1, 0 : pvd_N_y - 1 ) )
+    ALLOCATE( v2d_y( 0 : pvd_N_x - 1, 0 : pvd_N_y - 1 ) )
+    ALLOCATE( v2d_z( 0 : pvd_N_x - 1, 0 : pvd_N_y - 1 ) )
+    ALLOCATE( sca2d( 0 : pvd_N_x - 1, 0 : pvd_N_y - 1 ) )
     ALLOCATE( vec_x( 0 : pvd_N_x - 1, 0 : pvd_N_y - 1, 0 : pvd_N_z - 1 ) )
     ALLOCATE( vec_y( 0 : pvd_N_x - 1, 0 : pvd_N_y - 1, 0 : pvd_N_z - 1 ) )
     ALLOCATE( vec_z( 0 : pvd_N_x - 1, 0 : pvd_N_y - 1, 0 : pvd_N_z - 1 ) )
@@ -181,11 +187,11 @@ MODULE system_pvdoutput
     ! COPYING THE SUBSET DATA
     CALL  VTR_write_var(FD=fd,NAME="Vorticity",VX=vec_x,VY=vec_y,VZ=vec_z )
 
-    ! vec_x = u_x(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
-    ! vec_y = u_y(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
-    ! vec_z = u_z(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    vec_x = u_x(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    vec_y = u_y(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    vec_z = u_z(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
     ! ! COPYING THE SUBSET DATA
-    ! CALL  VTR_write_var(FD=fd,NAME="Velocity",VX=vec_x,VY=vec_y,VZ=vec_z )
+    CALL  VTR_write_var(FD=fd,NAME="Velocity",VX=vec_x,VY=vec_y,VZ=vec_z )
 
     scalr = w_mod_2(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
     CALL VTR_write_var(FD=fd, NAME='Z', FIELD= scalr)
@@ -210,6 +216,46 @@ MODULE system_pvdoutput
     ! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   END
+
+  SUBROUTINE write_PVD_vorticity_2D
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+  ! write the data in PVD format (only a part of the data to save memory )
+  ! in two dimensions
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    IMPLICIT NONE
+
+
+    file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_2D ) ) &
+                // 'VX_t'
+
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !   VORTICITY - PVD FORMAT (SUBSET)
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    CALL  VTR_open_file(PREFIX=file_name,FD=fd)
+
+    CALL  VTR_write_mesh(FD=fd,X=pvd_ax_x,Y=pvd_ax_y )
+
+    y_sec = INT( N_y / 2 )
+
+    v2d_x = w_ux(0:pvd_N_x-1,y_sec,0:pvd_N_z-1)
+    CALL VTR_write_var(FD=fd, NAME='w_x', FIELD= v2d_x)
+
+    v2d_y = w_uy(0:pvd_N_x-1,y_sec,0:pvd_N_z-1)
+    CALL VTR_write_var(FD=fd, NAME='w_y', FIELD= v2d_y)
+
+    v2d_z = w_uz(0:pvd_N_x-1,y_sec,0:pvd_N_z-1)
+    CALL VTR_write_var(FD=fd, NAME='w_z', FIELD= v2d_z)
+
+    CALL  VTR_close_file(FD=fd)
+
+    ! CALL  VTR_collect_file( FD = fd )
+    ! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  END
+
 
 	SUBROUTINE deallocate_PVD_subset_arrays
 	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

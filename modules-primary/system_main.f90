@@ -270,7 +270,7 @@ MODULE system_main
 
       CALL write_ve_section
       ! REF-> <<< system_advoutput >>>
-      
+
     END IF
 
     IF (MOD(t_step,t_step_PVD_save) .EQ. 0) THEN
@@ -288,6 +288,9 @@ MODULE system_main
       ! REF-> <<< system_pvdoutput >>>
 
       CALL write_PVD_vorticity_subset
+      ! REF-> <<< system_pvdoutput >>>
+
+      CALL write_PVD_vorticity_2D
       ! REF-> <<< system_pvdoutput >>>
 
     END IF
