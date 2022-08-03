@@ -71,7 +71,9 @@ MODULE system_basicvariables
   ! FLUID VARIABLES
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
   DOUBLE PRECISION ::initial_circ
+  DOUBLE PRECISION ::viscosity
   INTEGER(KIND=4)  ::k_integral
+  INTEGER(KIND=4)  ::viscosity_status
   ! _________________________
   ! FUNCTION VARIABLES
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
@@ -113,7 +115,7 @@ MODULE system_basicvariables
   ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   INTEGER(KIND=4),DIMENSION(:,:,:),ALLOCATABLE  ::shell_no
   ! Every grid has its modulus, |k|
-  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::k_x,k_y,k_z,k_2,truncator
+  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::k_x,k_y,k_z,k_2,truncator,integrating_factor
   ! wavenumber,truncator matrix
   DOUBLE COMPLEX,DIMENSION(:,:,:),ALLOCATABLE   ::v_x,v_y,v_z
   ! Spectral velocity matrix (will be updated after every time step)
@@ -271,10 +273,17 @@ MODULE system_basicvariables
     v_rms_1D        = DSQRT( two * energy_initial / thr )
     ! RMS Velocity
 
+    ! XXXXXXXXXXXXXXXXXXXXXX
+    ! VISCOSITY_SELECTION:
+    ! XXXXXXXXXXXXXXXXXXXXXX
+    viscosity_status= 0 ! 1 for viscous simulation, 0 for inviscid
+    viscosity       = ( 128.0D0 / DBLE( N_max ) ) * 1.20E-2
+    ! Viscosity of the system
+
     time_grid       = dx / v_rms_1D
     ! Time scale for particle to cross a grid
 
-    CFL_min         = 15
+    CFL_min         = 20
     ! - Courant-Friedrichs-Lewy (CFL) condition - CFL no is inverse of the above ratio
     ! No of steps (minimum) that should take to cross a grid
 
@@ -345,10 +354,11 @@ MODULE system_basicvariables
     CALL allocate_operators
     ! Allocates the arrays declared here.
 
-    shell_no          = 0
-    count_modes_shell = 0
-    tot_modes         = 0
-    tot_active_modes  = 0
+    shell_no           = 0
+    count_modes_shell  = 0
+    tot_modes          = 0
+    tot_active_modes   = 0
+    integrating_factor = 0
 
     !  +++++++++++++++++++++++++++++++++
     !  A  X  I  S      G   R  I   D   S
@@ -414,14 +424,19 @@ MODULE system_basicvariables
       !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       ! Truncation mask matrix (multiply this with any spectral matrix to DO the truncation)
       IF ( k_mod_2 .LT. k_G_2 ) THEN
-        truncator( j_x, j_y, j_z )                     =  one
+        truncator( j_x, j_y, j_z )          = one
         ! Spherical truncation filter matrix
 
-        tot_active_modes                               =  tot_active_modes + 1
+        tot_active_modes                    = tot_active_modes + 1
+
+        integrating_factor( j_x, j_y, j_z ) = DEXP( - viscosity * k_mod_2 * dt )
+        ! Integrating factor for viscous dissipation
       ELSE
 
-        truncator( j_x, j_y, j_z )                     =  zero
+        truncator( j_x, j_y, j_z )          = zero
         ! Outised the truncation sphere.
+
+        integrating_factor( j_x, j_y, j_z ) = zero
 
       END IF
 
@@ -479,6 +494,8 @@ MODULE system_basicvariables
     ALLOCATE( proj_zx( kMin_x   : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
     ALLOCATE( shell_no( kMin_x  : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
     ALLOCATE( count_modes_shell( 0 : max_shell_no ) )
+
+    ALLOCATE( integrating_factor( kMin_x   : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
 
   END
 
@@ -571,7 +588,7 @@ MODULE system_basicvariables
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     DEALLOCATE( axis_x, axis_y, axis_z )
     DEALLOCATE( k_2, k_x, k_y, k_z )
-    DEALLOCATE( truncator )
+    DEALLOCATE( truncator, integrating_factor )
     DEALLOCATE( proj_xx, proj_yy, proj_zz )
     DEALLOCATE( proj_xy, proj_yz, proj_zx )
     DEALLOCATE( shell_no, count_modes_shell )

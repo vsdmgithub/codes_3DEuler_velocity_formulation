@@ -90,7 +90,11 @@ MODULE system_basicoutput
     ! Sub directory name to store spectral data
 
     ! type_sim    =   TRIM( ADJUSTL( N_char ) ) // '/'
-    type_sim    =   'VX_DIS_' // TRIM( ADJUSTL( N_char ) ) // '/'
+    IF ( viscosity_status .EQ. 1 ) THEN
+    type_sim    =   'VCS_SHT' // TRIM( ADJUSTL( N_char ) ) // '/'
+    ELSE
+    type_sim    =   'IVCS_SHT' // TRIM( ADJUSTL( N_char ) ) // '/'
+    END IF
     ! type of simulation, the data is storing
 
     CALL get_simulation_name(name_sim)
@@ -191,6 +195,8 @@ MODULE system_basicoutput
     WRITE(233,"(A20,A2,I3,A2,I3,A2,I3)") 'L x W x H ','= ',N_x,'X',N_y,'X',N_z
     WRITE(233,"(A20,A2,I8)") 'Trunc. Mode ',          '= ',k_G
     WRITE(233,"(A20,A2,ES8.2)") 'Time step ',         '= ',dt
+    WRITE(233,"(A20,A2,ES8.2)")  'Viscosity   ',      '= ',viscosity
+    WRITE(233,"(A20,A2,I8)") 'Viscosity Status',      '= ',viscosity_status
     WRITE(233,"(A20,A2,I8)") 'CFL ratio ',            '= ',CFL_system
     WRITE(233,"(A20,A2,I8)") 'Total time steps ',     '= ',t_step_total
     WRITE(233,"(A20,A2,F8.4)") 'Total time ',         '= ',time_total

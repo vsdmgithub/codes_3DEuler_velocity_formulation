@@ -746,17 +746,17 @@ MODULE system_initialcondition
     u0                 = one
     ! Normalizing parameter
 
-    smooth_pm          = 0.750D0
+    smooth_pm          = 0.200D0
     ! How thick the sheet is, smaller the parameter thicker it is, has to be less than 1
 
     c_factor           = smooth_pm * two_pi / thr
     ! TO KEEP UP THE NOMENCLATURE FOR THIS STUDY.
     ! With this factor => c_factor * i_x = smooth_pm * k_G * x = k_0 * x
 
-    energy_ratio       = 0.01D0
+    energy_ratio       = 0.005D0
     ! Percentage of energy in compression field
 
-    psi                = 0.0D0 * ( two_pi / 360.0D0 )
+    psi                = 30.0D0 * ( two_pi / 360.0D0 )
     cs                 = DCOS( psi )
     sn                 = DSIN( psi )
     ! Angle at which the compression is oriented
@@ -767,7 +767,7 @@ MODULE system_initialcondition
     i_x1               = 1 * INT( N_x / 4 )
     i_x3               = 3 * INT( N_x / 4 )
 
-    k_beta             = 5.0D0
+    k_beta             = 4.0D0
     ! Spread of the gaussian damping
 
     ! Disturbance in XY Plane
@@ -883,7 +883,7 @@ MODULE system_initialcondition
     CALL fft_r2c( u_y, v_y )
     ! FFT spectral to real velocity
 
-    IC_type      = 'TEST'
+    IC_type      = 'DIS_30'
 
   END
   ! </f>

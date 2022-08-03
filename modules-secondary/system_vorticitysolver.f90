@@ -142,9 +142,16 @@ MODULE system_vorticitysolver
 		v_z      = v_z_temp + dv3_z
 		CALL time_increment_RK4()
 		! Final increment for 'v(k)'
-		v_x      = v_x_temp + ( dv1_x + two * dv2_x + two * dv3_x + dv4_x ) / six
-		v_y      = v_y_temp + ( dv1_y + two * dv2_y + two * dv3_y + dv4_y ) / six
-		v_z      = v_z_temp + ( dv1_z + two * dv2_z + two * dv3_z + dv4_z ) / six
+		IF ( viscosity_status .EQ.1 ) THEN
+			v_x      = ( v_x_temp + ( dv1_x + two * dv2_x + two * dv3_x + dv4_x ) / six ) * integrating_factor
+			v_y      = ( v_y_temp + ( dv1_y + two * dv2_y + two * dv3_y + dv4_y ) / six ) * integrating_factor
+			v_z      = ( v_z_temp + ( dv1_z + two * dv2_z + two * dv3_z + dv4_z ) / six ) * integrating_factor
+		ELSE
+			v_x      = v_x_temp + ( dv1_x + two * dv2_x + two * dv3_x + dv4_x ) / six
+			v_y      = v_y_temp + ( dv1_y + two * dv2_y + two * dv3_y + dv4_y ) / six
+			v_z      = v_z_temp + ( dv1_z + two * dv2_z + two * dv3_z + dv4_z ) / six
+		END IF
+
 
 	END
 
@@ -228,15 +235,33 @@ MODULE system_vorticitysolver
 
 			CALL time_derivative_AB()
 
-			v_x_pred = v_x + dt * ( - 9.0D0 * v_x_dot_m3 + 37.0D0 * v_x_dot_m2 - 59.0D0 * v_x_dot_m1 + 55.0D0 * v_x_dot ) / 24.0D0
-			v_y_pred = v_y + dt * ( - 9.0D0 * v_y_dot_m3 + 37.0D0 * v_y_dot_m2 - 59.0D0 * v_y_dot_m1 + 55.0D0 * v_y_dot ) / 24.0D0
-			v_z_pred = v_z + dt * ( - 9.0D0 * v_z_dot_m3 + 37.0D0 * v_z_dot_m2 - 59.0D0 * v_z_dot_m1 + 55.0D0 * v_z_dot ) / 24.0D0
+			IF ( viscosity_status .EQ.1 ) THEN
+				v_x_pred = ( v_x + dt * ( - 9.0D0 * v_x_dot_m3 + 37.0D0 * v_x_dot_m2 - 59.0D0 &
+																					* v_x_dot_m1 + 55.0D0 * v_x_dot ) / 24.0D0 ) * integrating_factor
+				v_y_pred = ( v_y + dt * ( - 9.0D0 * v_y_dot_m3 + 37.0D0 * v_y_dot_m2 - 59.0D0 &
+																					* v_y_dot_m1 + 55.0D0 * v_y_dot ) / 24.0D0 ) * integrating_factor
+				v_z_pred = ( v_z + dt * ( - 9.0D0 * v_z_dot_m3 + 37.0D0 * v_z_dot_m2 - 59.0D0 &
+																					* v_z_dot_m1 + 55.0D0 * v_z_dot ) / 24.0D0 ) * integrating_factor
+			ELSE
+				v_x_pred = v_x + dt * ( - 9.0D0 * v_x_dot_m3 + 37.0D0 * v_x_dot_m2 - 59.0D0 * v_x_dot_m1 + 55.0D0 * v_x_dot ) / 24.0D0
+				v_y_pred = v_y + dt * ( - 9.0D0 * v_y_dot_m3 + 37.0D0 * v_y_dot_m2 - 59.0D0 * v_y_dot_m1 + 55.0D0 * v_y_dot ) / 24.0D0
+				v_z_pred = v_z + dt * ( - 9.0D0 * v_z_dot_m3 + 37.0D0 * v_z_dot_m2 - 59.0D0 * v_z_dot_m1 + 55.0D0 * v_z_dot ) / 24.0D0
+			END IF
 
 			CALL time_derivative_AB_pred()
 
-			v_x      = v_x + dt * ( v_x_dot_m2 - 5.0D0 * v_x_dot_m1 + 19.0D0 * v_x_dot + 9.0D0 * v_x_dot_m3 ) / 24.0D0
-			v_y      = v_y + dt * ( v_y_dot_m2 - 5.0D0 * v_y_dot_m1 + 19.0D0 * v_y_dot + 9.0D0 * v_y_dot_m3 ) / 24.0D0
-			v_z      = v_z + dt * ( v_z_dot_m2 - 5.0D0 * v_z_dot_m1 + 19.0D0 * v_z_dot + 9.0D0 * v_z_dot_m3 ) / 24.0D0
+			IF ( viscosity_status .EQ.1 ) THEN
+				v_x      = ( v_x + dt * ( v_x_dot_m2 - 5.0D0 * v_x_dot_m1 + 19.0D0 &
+																	 * v_x_dot + 9.0D0 * v_x_dot_m3 ) / 24.0D0 ) * integrating_factor
+				v_y      = ( v_y + dt * ( v_y_dot_m2 - 5.0D0 * v_y_dot_m1 + 19.0D0 &
+																	 * v_y_dot + 9.0D0 * v_y_dot_m3 ) / 24.0D0 ) * integrating_factor
+				v_z      = ( v_z + dt * ( v_z_dot_m2 - 5.0D0 * v_z_dot_m1 + 19.0D0 &
+																	 * v_z_dot + 9.0D0 * v_z_dot_m3 ) / 24.0D0 ) * integrating_factor
+			ELSE
+				v_x      = v_x + dt * ( v_x_dot_m2 - 5.0D0 * v_x_dot_m1 + 19.0D0 * v_x_dot + 9.0D0 * v_x_dot_m3 ) / 24.0D0
+				v_y      = v_y + dt * ( v_y_dot_m2 - 5.0D0 * v_y_dot_m1 + 19.0D0 * v_y_dot + 9.0D0 * v_y_dot_m3 ) / 24.0D0
+				v_z      = v_z + dt * ( v_z_dot_m2 - 5.0D0 * v_z_dot_m1 + 19.0D0 * v_z_dot + 9.0D0 * v_z_dot_m3 ) / 24.0D0
+			END IF
 			! Predicted 'v_dot' is stored in 'v_dot_m3' - to save space :)
 
 			! Shiting the known velocities for next step

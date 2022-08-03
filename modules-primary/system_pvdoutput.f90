@@ -249,6 +249,15 @@ MODULE system_pvdoutput
     v2d_z = w_uz(0:pvd_N_x-1,y_sec,0:pvd_N_z-1)
     CALL VTR_write_var(FD=fd, NAME='w_z', FIELD= v2d_z)
 
+    v2d_x = u_x(0:pvd_N_x-1,y_sec,0:pvd_N_z-1)
+    CALL VTR_write_var(FD=fd, NAME='u_x', FIELD= v2d_x)
+
+    v2d_y = u_y(0:pvd_N_x-1,y_sec,0:pvd_N_z-1)
+    CALL VTR_write_var(FD=fd, NAME='u_y', FIELD= v2d_y)
+
+    v2d_z = u_z(0:pvd_N_x-1,y_sec,0:pvd_N_z-1)
+    CALL VTR_write_var(FD=fd, NAME='u_z', FIELD= v2d_z)
+
     CALL  VTR_close_file(FD=fd)
 
     ! CALL  VTR_collect_file( FD = fd )

@@ -257,6 +257,9 @@ MODULE system_main
     ! CALL compute_energy_filter
     ! REF-> <<< system_advfunctions >>>
 
+    CALL compute_vorticity
+    ! REF-> <<< system_basicfunctions >>>
+
     IF (MOD(t_step,t_step_save) .EQ. 0) THEN
 
       CALL write_spectral_data
@@ -275,9 +278,6 @@ MODULE system_main
 
     IF (MOD(t_step,t_step_PVD_save) .EQ. 0) THEN
 
-      CALL compute_vorticity
-      ! REF-> <<< system_basicfunctions >>>
-
       CALL compute_strain_tensor
       ! REF-> <<< system_advfunctions >>>
 
@@ -290,10 +290,11 @@ MODULE system_main
       CALL write_PVD_vorticity_subset
       ! REF-> <<< system_pvdoutput >>>
 
+    END IF
+
       CALL write_PVD_vorticity_2D
       ! REF-> <<< system_pvdoutput >>>
 
-    END IF
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  D  E  B  U  G             F  O  R          N  a   N
